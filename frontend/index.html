@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康管理团队 - 首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #eef2f7 0%, #f5f9ff 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .lang-bar {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .lang-btn {
+            padding: 6px 12px;
+            margin-left: 8px;
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            color: #4facfe;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .lang-btn.active {
+            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            color: #fff;
+        }
+        .title {
+            font-size: 32px;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 40px;
+        }
+        .team-grid {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .role-card {
+            width: 200px;
+            padding: 30px 20px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .role-card.team {
+            background: linear-gradient(135deg, #915afc, #ff7eb3);
+            color: white;
+        }
+        .role-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        .role-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+        .role-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .role-desc {
+            font-size: 13px;
+            color: #718096;
+        }
+        .role-card.team .role-desc {
+            color: rgba(255,255,255,0.9);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-bar">
+            <button class="lang-btn active" data-lang="zh-CN">中文</button>
+            <button class="lang-btn" data-lang="en-US">English</button>
+        </div>
+
+        <h1 class="title" data-i18n="title">🏥 私人健康管理团队</h1>
+        <p class="subtitle" data-i18n="subtitle">选择一位专属顾问，或发起团队联合会诊</p>
+
+        <div class="team-grid">
+            <div class="role-card" data-type="nutritionist">
+                <div class="role-icon">🍽️</div>
+                <div class="role-name" data-i18n="nutritionist">私人营养师</div>
+                <div class="role-desc" data-i18n="nutri_desc">饮食规划 | 营养分析 | 体重管理</div>
+            </div>
+            <div class="role-card" data-type="trainer">
+                <div class="role-icon">🏋️</div>
+                <div class="role-name" data-i18n="trainer">健身教练</div>
+                <div class="role-desc" data-i18n="trainer_desc">运动计划 | 康复训练 | 塑形指导</div>
+            </div>
+            <div class="role-card" data-type="health_keeper">
+                <div class="role-icon">🌿</div>
+                <div class="role-name" data-i18n="health_keeper">养生专家</div>
+                <div class="role-desc" data-i18n="keeper_desc">体质调理 | 睡眠改善 | 养生方案</div>
+            </div>
+            <div class="role-card" data-type="therapist">
+                <div class="role-icon">🧠</div>
+                <div class="role-name" data-i18n="therapist">心理辅导师</div>
+                <div class="role-desc" data-i18n="thera_desc">情绪疏导 | 压力管理 | 心理支持</div>
+            </div>
+            <div class="role-card team" data-type="team">
+                <div class="role-icon">👥</div>
+                <div class="role-name" data-i18n="team">团队联合会诊</div>
+                <div class="role-desc" data-i18n="team_desc">全团队专家联合为你提供建议</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const i18n = {
+            "zh-CN": {
+                title: "🏥 私人健康管理团队",
+                subtitle: "选择一位专属顾问，或发起团队联合会诊",
+                nutritionist: "私人营养师", nutri_desc: "饮食规划 | 营养分析 | 体重管理",
+                trainer: "健身教练", trainer_desc: "运动计划 | 康复训练 | 塑形指导",
+                health_keeper: "养生专家", keeper_desc: "体质调理 | 睡眠改善 | 养生方案",
+                therapist: "心理辅导师", thera_desc: "情绪疏导 | 压力管理 | 心理支持",
+                team: "团队联合会诊", team_desc: "全团队专家联合为你提供建议"
+            },
+            "en-US": {
+                title: "🏥 Private Health Management Team",
+                subtitle: "Choose a consultant or start team consultation",
+                nutritionist: "Nutritionist", nutri_desc: "Diet | Nutrition | Weight",
+                trainer: "Fitness Trainer", trainer_desc: "Workout | Recovery | Shape",
+                health_keeper: "Health Keeper", keeper_desc: "Constitution | Sleep | Wellness",
+                therapist: "Therapist", thera_desc: "Emotion | Stress | Mental Support",
+                team: "Team Consultation", team_desc: "All experts support you together"
+            }
+        };
+
+        let currentLang = "zh-CN";
+        const langBtns = document.querySelectorAll(".lang-btn");
+        const cards = document.querySelectorAll(".role-card");
+
+        // 语言切换
+        function changeLang(lang) {
+            currentLang = lang;
+            langBtns.forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                el.textContent = i18n[lang][el.dataset.i18n];
+            });
+        }
+        langBtns.forEach(b => b.addEventListener("click", () => changeLang(b.dataset.lang)));
+
+        // 点击跳转对话页
+        cards.forEach(card => {
+            card.addEventListener("click", () => {
+                const type = card.dataset.type;
+                const isTeam = type === "team" ? "true" : "false";
+                const agent = type === "team" ? "nutritionist" : type;
+                // 跳转并传递参数
+                window.location.href = `chat.html?agent=${agent}&isTeam=${isTeam}&lang=${currentLang}`;
+            });
+        });
+    </script>
+</body>
+</html>
