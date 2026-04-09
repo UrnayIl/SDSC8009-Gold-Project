@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康咨询</title>
+    <style>
+        /* 👇 这里完全保留你原来的样式，不做任何修改 👇 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f9ff;
+            min-height: 100vh;
+            padding: 20px 15px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+        /* 顶部控制栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .top-left {
+            display: flex;
+            gap: 8px;
+        }
+        .base-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            color: #4facfe;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .base-btn.primary {
+            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            color: #fff;
+        }
+        .lang-group .lang-btn {
+            padding: 8px 14px;
+            margin-left: 8px;
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            color: #4facfe;
+            cursor: pointer;
+        }
+        .lang-group .lang-btn.active {
+            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .agent-title {
+            font-size: 24px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        .chat-box {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .msg {
+            margin: 15px 0;
+            display: flex;
+            align-items: flex-start;
+            max-width: 80%;
+        }
+        .msg.user {
+            flex-direction: row-reverse;
+            margin-left: auto;
+        }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin: 0 10px;
+        }
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        .msg.user .bubble {
+            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            color: white;
+        }
+        .skill {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 12px 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+        }
+        #input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 24px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #sendBtn { background: linear-gradient(135deg, #4facfe, #00f2a3); }
+        #teamBtn { background: linear-gradient(135deg, #915afc, #ff7eb3); }
+        /* 👆 以上样式完全保留，不要修改 👆 */
+    </style>
+</head>
+<body>
+    <!-- 👇 这里是你的原始 HTML 结构，完全保留 👇 -->
+    <div class="container">
+        <div class="top-bar">
+            <div class="top-left">
+                <button class="base-btn" onclick="location.href='index.html'">← 返回首页</button>
+                <button class="base-btn primary">选择其他角色</button>
+            </div>
+            <div class="lang-group">
+                <button class="lang-btn active">中文</button>
+                <button class="lang-btn">English</button>
+            </div>
+        </div>
+
+        <div class="header">
+            <h2 class="agent-title" id="title">🥄 私人营养师</h2>
+        </div>
+
+        <div class="chat-box" id="chat"></div>
+
+        <div class="input-area">
+            <input id="input" placeholder="请输入你的健康问题...">
+            <button class="btn" id="sendBtn">发送</button>
+            <button class="btn" id="teamBtn">寻求团队建议</button>
+        </div>
+    </div>
+    <!-- 👆 以上 HTML 结构完全保留，不要修改 👆 -->
+
+    <script>
+        // 👇 以下是修改后的 JavaScript 逻辑 -> 完美对接 Flask 后端 👇
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentAgent = urlParams.get('agent') || 'nutritionist';
+        const history = []; // 多轮对话记忆
+
+        // 后端地址（和你的 app.py 保持一致）
+        const API_BASE = "http://localhost:5177/api/chat";
+
+        // 角色中文名称映射（用于显示标题）
+        const agentNames = {
+            nutritionist: "🍽️ 私人营养师",
+            trainer: "🏋️ 健身教练",
+            health_keeper: "🌿 养生专家",
+            therapist: "🧠 心理辅导师",
+            team: "🏥 团队协调会诊"
+        };
+
+        // 初始化页面标题
+        document.getElementById('title').innerText = agentNames[currentAgent];
+
+        // 添加消息到界面
+        function addMessage(text, isUser, skillName = "") {
+            const chatDiv = document.getElementById('chat');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${isUser ? 'user' : 'bot'}`;
+            
+            let skillHtml = skillName ? `<div class="skill">使用技能：${skillName}</div>` : '';
+            msgDiv.innerHTML = skillHtml + `<div class="bubble">${text}</div>`;
+            
+            chatDiv.appendChild(msgDiv);
+            // 滚动到底部
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        // 发送消息（核心：对接 Flask 接口）
+        async function sendMessage(isTeamMode = false) {
+            const inputEl = document.getElementById('input');
+            const userText = inputEl.value.trim();
+            
+            if (!userText) return;
+
+            // 1. 添加用户消息到界面
+            addMessage(userText, true);
+            inputEl.value = '';
+
+            try {
+                // 2. 调用 Python Flask 后端
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        agent_type: isTeamMode ? "team" : currentAgent, // 如果是团队模式，强制切换为team
+                        message: userText,
+                        history: history // 传递历史对话记忆
+                    })
+                });
+
+                const result = await response.json();
+                
+                // 3. 清除加载状态（如果有的话）
+                // 4. 添加AI回复到界面
+                addMessage(result.reply, false, result.skill_used);
+                
+                // 5. 保存到历史记录（用于下一轮上下文传递）
+                history.push({
+                    user: userText,
+                    ai: result.reply
+                });
+
+                // 6. 如果触发了团队会诊，更新页面标题
+                if (result.agent === "team" && !isTeamMode) {
+                    document.getElementById('title').innerText = agentNames.team;
+                }
+
+            } catch (error) {
+                console.error("请求AI失败:", error);
+                addMessage("❌ 连接服务器失败，请确保后端服务已启动。", false);
+            }
+        }
+
+        // 绑定发送按钮事件
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        
+        // 绑定回车键
+        document.getElementById('input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 团队会诊按钮（特殊逻辑：强制切换到 team agent）
+        document.getElementById('teamBtn').addEventListener('click', function() {
+            sendMessage(true);
+        });
+
+        // 初始化：发送欢迎语
+        window.onload = function() {
+            addMessage("你好，我是你的专属营养师，有什么可以帮你的？", false);
+        };
+    </script>
+</body>
+</html>

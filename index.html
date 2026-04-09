@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康管理团队</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .lang-bar {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .lang-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            cursor: pointer;
+            margin-left: 6px;
+        }
+        .lang-btn.active {
+            background: #42b983;
+            color: #fff;
+        }
+        .title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card {
+            width: 200px;
+            padding: 30px 20px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+        }
+        .icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+        .name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .desc {
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-bar">
+            <button class="lang-btn active" onclick="setLang('zh')">中文</button>
+            <button class="lang-btn" onclick="setLang('en')">English</button>
+        </div>
+
+        <h1 class="title">🏥 私人健康管理团队</h1>
+        <p class="subtitle">选择顾问开始咨询</p>
+
+        <div class="grid">
+            <div class="card" onclick="go('nutritionist')">
+                <div class="icon">🍽️</div>
+                <div class="name">私人营养师</div>
+                <div class="desc">饮食 | 营养 | 减脂</div>
+            </div>
+            <div class="card" onclick="go('trainer')">
+                <div class="icon">🏋️</div>
+                <div class="name">健身教练</div>
+                <div class="desc">运动 | 康复 | 塑形</div>
+            </div>
+            <div class="card" onclick="go('health_keeper')">
+                <div class="icon">🌿</div>
+                <div class="name">养生专家</div>
+                <div class="desc">睡眠 | 体质 | 调理</div>
+            </div>
+            <div class="card" onclick="go('therapist')">
+                <div class="icon">🧠</div>
+                <div class="name">心理辅导师</div>
+                <div class="desc">情绪 | 压力 | 疏导</div>
+            </div>
+            <div class="card" onclick="go('team')">
+                <div class="icon">🏥</div>
+                <div class="name">团队协调会诊</div>
+                <div class="desc">全领域专家服务</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lang = "zh";
+        function setLang(l) {
+            lang = l;
+            document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active"));
+            event.target.classList.add("active");
+        }
+        function go(agent) {
+            location.href = `chat.html?agent=${agent}&lang=${lang}`;
+        }
+    </script>
+</body>
+</html>
