@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健康管理团队</title>
+    <title>Personal Health Management Team</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
+            font-family: "Segoe UI", sans-serif;
         }
         body {
             background: #f5f7fa;
@@ -20,22 +20,6 @@
             max-width: 1000px;
             margin: 0 auto;
             text-align: center;
-        }
-        .lang-bar {
-            text-align: right;
-            margin-bottom: 20px;
-        }
-        .lang-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 20px;
-            background: #fff;
-            cursor: pointer;
-            margin-left: 6px;
-        }
-        .lang-btn.active {
-            background: #42b983;
-            color: #fff;
         }
         .title {
             font-size: 28px;
@@ -82,52 +66,41 @@
 </head>
 <body>
     <div class="container">
-        <div class="lang-bar">
-            <button class="lang-btn active" onclick="setLang('zh')">中文</button>
-            <button class="lang-btn" onclick="setLang('en')">English</button>
-        </div>
-
-        <h1 class="title">🏥 私人健康管理团队</h1>
-        <p class="subtitle">选择顾问开始咨询</p>
+        <h1 class="title">🏥 Personal Health Management Team</h1>
+        <p class="subtitle">Choose a specialist to start your consultation</p>
 
         <div class="grid">
             <div class="card" onclick="go('nutritionist')">
                 <div class="icon">🍽️</div>
-                <div class="name">私人营养师</div>
-                <div class="desc">饮食 | 营养 | 减脂</div>
+                <div class="name">Personal Nutritionist</div>
+                <div class="desc">Diet | Nutrition | Weight Loss</div>
             </div>
             <div class="card" onclick="go('trainer')">
                 <div class="icon">🏋️</div>
-                <div class="name">健身教练</div>
-                <div class="desc">运动 | 康复 | 塑形</div>
+                <div class="name">Fitness Trainer</div>
+                <div class="desc">Exercise | Rehabilitation | Shaping</div>
             </div>
             <div class="card" onclick="go('health_keeper')">
                 <div class="icon">🌿</div>
-                <div class="name">养生专家</div>
-                <div class="desc">睡眠 | 体质 | 调理</div>
+                <div class="name">Wellness Expert</div>
+                <div class="desc">Sleep | Constitution | Conditioning</div>
             </div>
             <div class="card" onclick="go('therapist')">
                 <div class="icon">🧠</div>
-                <div class="name">心理辅导师</div>
-                <div class="desc">情绪 | 压力 | 疏导</div>
+                <div class="name">Mental Health Counselor</div>
+                <div class="desc">Emotion | Stress | Counseling</div>
             </div>
             <div class="card" onclick="go('team')">
                 <div class="icon">🏥</div>
-                <div class="name">团队协调会诊</div>
-                <div class="desc">全领域专家服务</div>
+                <div class="name">Team Consultation</div>
+                <div class="desc">All-domain expert service</div>
             </div>
         </div>
     </div>
 
     <script>
-        let lang = "zh";
-        function setLang(l) {
-            lang = l;
-            document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active"));
-            event.target.classList.add("active");
-        }
         function go(agent) {
-            location.href = `chat.html?agent=${agent}&lang=${lang}`;
+            location.href = `chat.html?agent=${agent}&lang=en`;
         }
     </script>
 </body>

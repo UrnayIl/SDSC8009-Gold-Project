@@ -1,16 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健康咨询</title>
+    <title>Health Consultation</title>
     <style>
-        /* 👇 这里完全保留你原来的样式，不做任何修改 👇 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            font-family: "Segoe UI", sans-serif;
         }
         body {
             background: #f5f9ff;
@@ -21,7 +20,6 @@
             max-width: 900px;
             margin: auto;
         }
-        /* 顶部控制栏 */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -45,19 +43,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .base-btn.primary {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
-            color: #fff;
-        }
-        .lang-group .lang-btn {
-            padding: 8px 14px;
-            margin-left: 8px;
-            border: none;
-            border-radius: 20px;
-            background: #fff;
-            color: #4facfe;
-            cursor: pointer;
-        }
-        .lang-group .lang-btn.active {
             background: linear-gradient(135deg, #4facfe, #00f2a3);
             color: #fff;
         }
@@ -146,139 +131,132 @@
         }
         #sendBtn { background: linear-gradient(135deg, #4facfe, #00f2a3); }
         #teamBtn { background: linear-gradient(135deg, #915afc, #ff7eb3); }
-        /* 👆 以上样式完全保留，不要修改 👆 */
     </style>
 </head>
 <body>
-    <!-- 👇 这里是你的原始 HTML 结构，完全保留 👇 -->
     <div class="container">
         <div class="top-bar">
             <div class="top-left">
-                <button class="base-btn" onclick="location.href='index.html'">← 返回首页</button>
-                <button class="base-btn primary">选择其他角色</button>
-            </div>
-            <div class="lang-group">
-                <button class="lang-btn active">中文</button>
-                <button class="lang-btn">English</button>
+                <button class="base-btn" onclick="location.href='index.html'">← Back to Home</button>
+                <button class="base-btn primary">Change Specialist</button>
             </div>
         </div>
 
         <div class="header">
-            <h2 class="agent-title" id="title">🥄 私人营养师</h2>
+            <h2 class="agent-title" id="title">🍽️ Personal Nutritionist</h2>
         </div>
 
         <div class="chat-box" id="chat"></div>
 
         <div class="input-area">
-            <input id="input" placeholder="请输入你的健康问题...">
-            <button class="btn" id="sendBtn">发送</button>
-            <button class="btn" id="teamBtn">寻求团队建议</button>
+            <input id="input" placeholder="Share your health questions...">
+            <button class="btn" id="sendBtn">Send</button>
+            <button class="btn" id="teamBtn">Ask Team for Advice</button>
         </div>
     </div>
-    <!-- 👆 以上 HTML 结构完全保留，不要修改 👆 -->
 
     <script>
-        // 👇 以下是修改后的 JavaScript 逻辑 -> 完美对接 Flask 后端 👇
         const urlParams = new URLSearchParams(window.location.search);
         const currentAgent = urlParams.get('agent') || 'nutritionist';
-        const history = []; // 多轮对话记忆
+        const history = [];
 
-        // 后端地址（和你的 app.py 保持一致）
+        // Backend API address
         const API_BASE = "http://localhost:5177/api/chat";
 
-        // 角色中文名称映射（用于显示标题）
+        // Agent name mapping (English)
         const agentNames = {
-            nutritionist: "🍽️ 私人营养师",
-            trainer: "🏋️ 健身教练",
-            health_keeper: "🌿 养生专家",
-            therapist: "🧠 心理辅导师",
-            team: "🏥 团队协调会诊"
+            nutritionist: "🍽️ Personal Nutritionist",
+            trainer: "🏋️ Fitness Trainer",
+            health_keeper: "🌿 Wellness Expert",
+            therapist: "🧠 Mental Health Counselor",
+            team: "🏥 Team Consultation"
         };
 
-        // 初始化页面标题
+        // Initialize page title
         document.getElementById('title').innerText = agentNames[currentAgent];
 
-        // 添加消息到界面
+        // Add message to chat interface
         function addMessage(text, isUser, skillName = "") {
-        const chatDiv = document.getElementById('chat');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `msg ${isUser ? 'user' : 'bot'}`;
-        
-        // 🔥 核心修改：把 \n 替换成 <br>，实现换行分段
-        const formattedText = text.replace(/\n/g, '<br>');
-        
-        let skillHtml = skillName ? `<div class="skill">使用技能：${skillName}</div>` : '';
-        msgDiv.innerHTML = skillHtml + `<div class="bubble">${formattedText}</div>`;
-        
-        chatDiv.appendChild(msgDiv);
-        chatDiv.scrollTop = chatDiv.scrollHeight;
+            const chatDiv = document.getElementById('chat');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${isUser ? 'user' : 'bot'}`;
+            
+            // Format line breaks
+            const formattedText = text.replace(/\n/g, '<br>');
+            
+            let skillHtml = skillName ? `<div class="skill">Skill used: ${skillName}</div>` : '';
+            msgDiv.innerHTML = `${skillHtml}<div class="bubble">${formattedText}</div>`;
+            
+            chatDiv.appendChild(msgDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
         }
 
-
-        // 发送消息（核心：对接 Flask 接口）
+        // Send message to backend
         async function sendMessage(isTeamMode = false) {
             const inputEl = document.getElementById('input');
             const userText = inputEl.value.trim();
             
             if (!userText) return;
 
-            // 1. 添加用户消息到界面
+            // Add user message to UI
             addMessage(userText, true);
             inputEl.value = '';
 
             try {
-                // 2. 调用 Python Flask 后端
+                // Call Flask backend
                 const response = await fetch(API_BASE, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        agent_type: isTeamMode ? "team" : currentAgent, // 如果是团队模式，强制切换为team
+                        agent_type: isTeamMode ? "team" : currentAgent,
                         message: userText,
-                        history: history // 传递历史对话记忆
+                        history: history
                     })
                 });
 
                 const result = await response.json();
                 
-                // 3. 清除加载状态（如果有的话）
-                // 4. 添加AI回复到界面
+                // Add AI response to UI
                 addMessage(result.reply, false, result.skill_used);
                 
-                // 5. 保存到历史记录（用于下一轮上下文传递）
+                // Save to history
                 history.push({
                     user: userText,
                     ai: result.reply
                 });
 
-                // 6. 如果触发了团队会诊，更新页面标题
+                // Update title if switched to team mode
                 if (result.agent === "team" && !isTeamMode) {
                     document.getElementById('title').innerText = agentNames.team;
                 }
 
             } catch (error) {
-                console.error("请求AI失败:", error);
-                addMessage("❌ 连接服务器失败，请确保后端服务已启动。", false);
+                console.error("Failed to connect to AI:", error);
+                addMessage("❌ Failed to connect to server. Please ensure backend service is running.", false);
             }
         }
 
-        // 绑定发送按钮事件
+        // Bind events
         document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        
-        // 绑定回车键
         document.getElementById('input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
-
-        // 团队会诊按钮（特殊逻辑：强制切换到 team agent）
         document.getElementById('teamBtn').addEventListener('click', function() {
             sendMessage(true);
         });
 
-        // 初始化：发送欢迎语
+        // Initial welcome message
         window.onload = function() {
-            addMessage("你好，我是你的专属营养师，有什么可以帮你的？", false);
+            const welcomeMessages = {
+                nutritionist: "Hello! I'm your personal Nutritionist. How can I help you with your diet and nutrition today?",
+                trainer: "Hi there! I'm your Fitness Trainer. Let's work on your fitness goals together.",
+                health_keeper: "Welcome! I'm your Wellness Expert. Let's talk about improving your overall well-being.",
+                therapist: "Hello, I'm your Mental Health Counselor. I'm here to listen and support you.",
+                team: "Hi! Our expert team is here to help with all your health concerns."
+            };
+            addMessage(welcomeMessages[currentAgent], false);
         };
     </script>
 </body>
