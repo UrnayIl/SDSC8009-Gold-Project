@@ -206,175 +206,212 @@
             background: #f1f5f9;
             cursor: pointer;
         }
+
+        /* 让 Markdown 内容美观 */
+        .msg-bubble h3 {
+            font-size: 16px;
+            margin: 4px 0 6px 0;
+            font-weight: 600;
+        }
+        .msg-bubble strong {
+            font-weight: 600;
+        }
+        .msg-bubble ul {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+        .msg-bubble li {
+            margin: 2px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="top-bar">
-            <div class="top-left">
-                <button class="base-btn" onclick="goBack()">← Back</button>
-                <button class="base-btn primary" onclick="openModal()">Change Coach</button>
-            </div>
-        </div>
-
-        <div class="header">
-            <h2 class="agent-title" id="agentTitle">Chat with Your Personal Health Coach</h2>
-        </div>
-
-        <div class="chat-box">
-            <div class="message-area" id="messageArea"></div>
-            <div class="input-panel">
-                <input type="text" id="inputText" placeholder="Share how you’re feeling...">
-                <button class="btn" id="sendBtn">Send</button>
-                <button class="btn" id="teamBtn">Ask Team</button>
-            </div>
+<div class="container">
+    <div class="top-bar">
+        <div class="top-left">
+            <button class="base-btn" onclick="goBack()">← Back</button>
+            <button class="base-btn primary" onclick="openModal()">Change Coach</button>
         </div>
     </div>
 
-    <div class="modal" id="roleModal">
-        <div class="modal-content">
-            <h3 class="modal-title" id="modalTitle">Choose Your Health Coach</h3>
-            <div class="role-grid">
-                <div class="role-item" data-type="nutritionist">
-                    <div class="role-icon">🍽️</div>
-                    <div class="role-name">Nutrition Coach</div>
-                </div>
-                <div class="role-item" data-type="trainer">
-                    <div class="role-icon">🏋️</div>
-                    <div class="role-name">Fitness Coach</div>
-                </div>
-                <div class="role-item" data-type="health_keeper">
-                    <div class="role-icon">🌿</div>
-                    <div class="role-name">Wellness Guide</div>
-                </div>
-                <div class="role-item" data-type="therapist">
-                    <div class="role-icon">🧠</div>
-                    <div class="role-name">Mind Support</div>
-                </div>
-            </div>
-            <button class="close-btn" onclick="closeModal()">Close</button>
-        </div>
+    <div class="header">
+        <h2 class="agent-title" id="agentTitle">Chat with Your Personal Health Coach</h2>
     </div>
 
-    <script>
-        function getUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            return {
-                agent: params.get("agent") || "nutritionist",
-                isTeam: params.get("isTeam") === "true",
-                lang: "en-US"
-            };
-        }
-        const urlData = getUrlParams();
-        let currentAgent = urlData.agent;
-        let currentLang = "en-US";
-        const defaultTeamMode = urlData.isTeam;
+    <div class="chat-box">
+        <div class="message-area" id="messageArea"></div>
+        <div class="input-panel">
+            <input type="text" id="inputText" placeholder="Share how you’re feeling...">
+            <button class="btn" id="sendBtn">Send</button>
+            <button class="btn" id="teamBtn">Ask Team</button>
+        </div>
+    </div>
+</div>
 
-        const i18n = {
-            "en-US": {
-                welcome: {
-                    nutritionist: "Hi there! I'm your personal Nutrition Coach. Let’s build healthy habits that fit your life — how can I help you today?",
-                    trainer: "Hey! I'm your personal Fitness Coach. Let’s get moving safely and hit your goals — what do you want to work on today?",
-                    health_keeper: "Hello. I'm your personal Wellness Guide. Take your time — how would you like to feel better today?",
-                    therapist: "Hi. I'm here as your personal Mind Support. Whatever you’re feeling is okay — I’m ready to listen."
-                },
-                team_welcome: "Hi! We’re your health team. We’re here to support you together 💛",
-                placeholder: "Share how you’re feeling...",
-                send: "Send",
-                team_consult: "Ask Team",
-                modal_title: "Choose Your Health Coach"
-            }
+<div class="modal" id="roleModal">
+    <div class="modal-content">
+        <h3 class="modal-title" id="modalTitle">Choose Your Health Coach</h3>
+        <div class="role-grid">
+            <div class="role-item" data-type="nutritionist">
+                <div class="role-icon">🍽️</div>
+                <div class="role-name">Nutrition Coach</div>
+            </div>
+            <div class="role-item" data-type="trainer">
+                <div class="role-icon">🏋️</div>
+                <div class="role-name">Fitness Coach</div>
+            </div>
+            <div class="role-item" data-type="health_keeper">
+                <div class="role-icon">🌿</div>
+                <div class="role-name">Wellness Guide</div>
+            </div>
+            <div class="role-item" data-type="therapist">
+                <div class="role-icon">🧠</div>
+                <div class="role-name">Mind Support</div>
+            </div>
+        </div>
+        <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            agent: params.get("agent") || "nutritionist",
+            isTeam: params.get("isTeam") === "true",
+            lang: "en-US"
         };
+    }
+    const urlData = getUrlParams();
+    let currentAgent = urlData.agent;
+    let currentLang = "en-US";
+    const defaultTeamMode = urlData.isTeam;
 
-        const agentConfig = {
-            nutritionist: { name: "Nutrition Coach", icon: "🍽️" },
-            trainer: { name: "Fitness Coach", icon: "🏋️" },
-            health_keeper: { name: "Wellness Guide", icon: "🌿" },
-            therapist: { name: "Mind Support", icon: "🧠" }
-        };
+    const i18n = {
+        "en-US": {
+            welcome: {
+                nutritionist: "Hi there! I'm your personal Nutrition Coach. Let’s build healthy habits that fit your life — how can I help you today?",
+                trainer: "Hey! I'm your Fitness Coach. Let’s get moving safely and hit your goals — what do you want to work on today?",
+                health_keeper: "Hello. I'm your Wellness Guide. Take your time — how would you like to feel better today?",
+                therapist: "Hi. I'm here as your Mind Support. Whatever you’re feeling is okay — I’m ready to listen."
+            },
+            team_welcome: "Hi! We’re your health team. We’re here to support you together 💛",
+            placeholder: "Share how you’re feeling...",
+            send: "Send",
+            team_consult: "Ask Team",
+            modal_title: "Choose Your Health Coach"
+        }
+    };
 
-        const messageArea = document.getElementById("messageArea");
-        const inputText = document.getElementById("inputText");
-        const sendBtn = document.getElementById("sendBtn");
-        const teamBtn = document.getElementById("teamBtn");
-        const agentTitle = document.getElementById("agentTitle");
-        const roleModal = document.getElementById("roleModal");
-        const modalTitle = document.getElementById("modalTitle");
-        const roleItems = document.querySelectorAll(".role-item");
+    const agentConfig = {
+        nutritionist: { name: "Nutrition Coach", icon: "🍽️" },
+        trainer: { name: "Fitness Coach", icon: "🏋️" },
+        health_keeper: { name: "Wellness Guide", icon: "🌿" },
+        therapist: { name: "Mind Support", icon: "🧠" }
+    };
 
-        function init() {
-            refreshLangText();
-            loadWelcomeMessage();
+    const messageArea = document.getElementById("messageArea");
+    const inputText = document.getElementById("inputText");
+    const sendBtn = document.getElementById("sendBtn");
+    const teamBtn = document.getElementById("teamBtn");
+    const agentTitle = document.getElementById("agentTitle");
+    const roleModal = document.getElementById("roleModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const roleItems = document.querySelectorAll(".role-item");
+
+    // ==============================================
+    // 核心：Markdown 解析函数（自动转成富文本）
+    // ==============================================
+    function renderMarkdown(text) {
+        text = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
+            .replace(/- (.*?)(\n|$)/g, '<li>$1</li>')
+            .replace(/\n/g, '<br>');
+        
+        text = text.replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>');
+        return text;
+    }
+
+    function init() {
+        refreshLangText();
+        loadWelcomeMessage();
+    }
+
+    function refreshLangText() {
+        inputText.placeholder = i18n[currentLang].placeholder;
+        sendBtn.textContent = i18n[currentLang].send;
+        teamBtn.textContent = i18n[currentLang].team_consult;
+        modalTitle.textContent = i18n[currentLang].modal_title;
+    }
+
+    function loadWelcomeMessage() {
+        messageArea.innerHTML = "";
+        const agent = agentConfig[currentAgent];
+        let welcome = i18n[currentLang].welcome[currentAgent];
+        
+        if(defaultTeamMode) {
+            welcome = i18n[currentLang].team_welcome;
+            agentTitle.textContent = "👥 Health Team Support";
+        } else {
+            agentTitle.textContent = `${agent.icon} ${agent.name}`;
+        }
+        addMessage(welcome, "ai", defaultTeamMode);
+    }
+
+    function addMessage(text, role, isTeam = false) {
+        const wrap = document.createElement("div");
+        wrap.className = `msg-wrapper ${role}`;
+        
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = role === "user" ? "👤" : agentConfig[currentAgent].icon;
+
+        const bubble = document.createElement("div");
+        bubble.className = "msg-bubble";
+
+        // ==============================================
+        // 关键：AI 消息自动解析 Markdown
+        // ==============================================
+        if (isTeam && role === "ai") {
+            bubble.innerHTML = `<span class="team-badge">${i18n[currentLang].team_consult}</span><br>${renderMarkdown(text)}`;
+        } else if (role === "ai") {
+            bubble.innerHTML = renderMarkdown(text);
+        } else {
+            bubble.textContent = text;
         }
 
-        function refreshLangText() {
-            inputText.placeholder = i18n[currentLang].placeholder;
-            sendBtn.textContent = i18n[currentLang].send;
-            teamBtn.textContent = i18n[currentLang].team_consult;
-            modalTitle.textContent = i18n[currentLang].modal_title;
-        }
+        wrap.appendChild(avatar);
+        wrap.appendChild(bubble);
+        messageArea.appendChild(wrap);
+        messageArea.scrollTop = messageArea.scrollHeight;
+    }
 
-        function loadWelcomeMessage() {
-            messageArea.innerHTML = "";
-            const agent = agentConfig[currentAgent];
-            let welcome = i18n[currentLang].welcome[currentAgent];
-            
-            if(defaultTeamMode) {
-                welcome = i18n[currentLang].team_welcome;
-                agentTitle.textContent = "👥 Health Team Support";
-            } else {
-                agentTitle.textContent = `${agent.icon} ${agent.name}`;
-            }
-            addMessage(welcome, "ai", defaultTeamMode);
-        }
+    function openModal() { roleModal.classList.add("show"); }
+    function closeModal() { roleModal.classList.remove("show"); }
 
-        function addMessage(text, role, isTeam = false) {
-            const wrap = document.createElement("div");
-            wrap.className = `msg-wrapper ${role}`;
-            
-            const avatar = document.createElement("div");
-            avatar.className = "avatar";
-            avatar.textContent = role === "user" ? "👤" : agentConfig[currentAgent].icon;
+    function changeAgent(type) {
+        currentAgent = type;
+        closeModal();
+        loadWelcomeMessage();
+    }
 
-            const bubble = document.createElement("div");
-            bubble.className = "msg-bubble";
-            if(isTeam && role === "ai") {
-                bubble.innerHTML = `<span class="team-badge">${i18n[currentLang].team_consult}</span><br>${text}`;
-            } else {
-                bubble.textContent = text;
-            }
+    function goBack() { window.location.href = "index.html"; }
 
-            wrap.appendChild(avatar);
-            wrap.appendChild(bubble);
-            messageArea.appendChild(wrap);
-            messageArea.scrollTop = messageArea.scrollHeight;
-        }
+    async function sendMessage(isTeam) {
+        const text = inputText.value.trim();
+        if(!text) return;
+        addMessage(text, "user");
+        inputText.value = "";
+        addMessage(isTeam ? "Our team is preparing a warm response for you..." : "I'm thinking...", "ai", isTeam);
+    }
 
-        function openModal() { roleModal.classList.add("show"); }
-        function closeModal() { roleModal.classList.remove("show"); }
+    roleItems.forEach(item => item.addEventListener("click", () => changeAgent(item.dataset.type)));
+    sendBtn.addEventListener("click", () => sendMessage(false));
+    teamBtn.addEventListener("click", () => sendMessage(true));
+    inputText.addEventListener("keypress", e => e.key === "Enter" && sendMessage(false));
 
-        function changeAgent(type) {
-            currentAgent = type;
-            closeModal();
-            loadWelcomeMessage();
-        }
-
-        function goBack() { window.location.href = "index.html"; }
-
-        async function sendMessage(isTeam) {
-            const text = inputText.value.trim();
-            if(!text) return;
-            addMessage(text, "user");
-            inputText.value = "";
-            addMessage(isTeam ? "Our team is preparing a warm response for you..." : "I'm thinking...", "ai", isTeam);
-        }
-
-        roleItems.forEach(item => item.addEventListener("click", () => changeAgent(item.dataset.type)));
-        sendBtn.addEventListener("click", () => sendMessage(false));
-        teamBtn.addEventListener("click", () => sendMessage(true));
-        inputText.addEventListener("keypress", e => e.key === "Enter" && sendMessage(false));
-
-        init();
-    </script>
+    init();
+</script>
 </body>
 </html>
