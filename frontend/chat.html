@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健康咨询</title>
+    <title>Chat with Your Personal Health Coach</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            font-family: "Segoe UI", sans-serif;
         }
         body {
             background: linear-gradient(135deg, #eef2f7 0%, #f5f9ff 100%);
@@ -20,8 +20,6 @@
             max-width: 900px;
             margin: 0 auto;
         }
-
-        /* 顶部控制栏：返回 + 切换角色 + 语言 */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -43,7 +41,6 @@
             cursor: pointer;
             font-size: 14px;
             transition: 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .base-btn.primary {
             background: linear-gradient(135deg, #4facfe, #00f2a3);
@@ -52,23 +49,6 @@
         .base-btn:hover {
             transform: translateY(-2px);
         }
-
-        /* 语言切换 */
-        .lang-group .lang-btn {
-            padding: 8px 14px;
-            margin-left: 8px;
-            border: none;
-            border-radius: 20px;
-            background: #fff;
-            color: #4facfe;
-            cursor: pointer;
-        }
-        .lang-group .lang-btn.active {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
-            color: #fff;
-        }
-
-        /* 标题 */
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -78,8 +58,6 @@
             color: #2d3748;
             font-weight: 600;
         }
-
-        /* 聊天窗口 */
         .chat-box {
             background: #fff;
             border-radius: 20px;
@@ -162,7 +140,6 @@
         #sendBtn { background: linear-gradient(135deg, #4facfe, #00f2a3); }
         #teamBtn { background: linear-gradient(135deg, #915afc, #ff7eb3); }
 
-        /* 🔥 角色选择弹窗（核心） */
         .modal {
             position: fixed;
             top: 0;
@@ -229,135 +206,102 @@
             background: #f1f5f9;
             cursor: pointer;
         }
-
-        /* 滚动条美化 */
-        .message-area::-webkit-scrollbar { width: 6px; }
-        .message-area::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 3px; }
-
-        @media (max-width: 600px) {
-            .chat-box { height: 500px; }
-            .top-bar { justify-content: center; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 顶部栏：返回首页 + 选择其他角色 + 语言切换 -->
         <div class="top-bar">
             <div class="top-left">
-                <button class="base-btn" onclick="goBack()">← 返回首页</button>
-                <button class="base-btn primary" onclick="openModal()">选择其他角色</button>
-            </div>
-            <div class="lang-group">
-                <button class="lang-btn active" data-lang="zh-CN">中文</button>
-                <button class="lang-btn" data-lang="en-US">English</button>
+                <button class="base-btn" onclick="goBack()">← Back</button>
+                <button class="base-btn primary" onclick="openModal()">Change Coach</button>
             </div>
         </div>
 
-        <!-- 标题 -->
         <div class="header">
-            <h2 class="agent-title" id="agentTitle">健康咨询</h2>
+            <h2 class="agent-title" id="agentTitle">Chat with Your Personal Health Coach</h2>
         </div>
 
-        <!-- 聊天窗口 -->
         <div class="chat-box">
             <div class="message-area" id="messageArea"></div>
             <div class="input-panel">
-                <input type="text" id="inputText" placeholder="请输入问题...">
-                <button class="btn" id="sendBtn">发送</button>
-                <button class="btn" id="teamBtn">寻求团队建议</button>
+                <input type="text" id="inputText" placeholder="Share how you’re feeling...">
+                <button class="btn" id="sendBtn">Send</button>
+                <button class="btn" id="teamBtn">Ask Team</button>
             </div>
         </div>
     </div>
 
-    <!-- 🔥 角色选择弹窗 -->
     <div class="modal" id="roleModal">
         <div class="modal-content">
-            <h3 class="modal-title" id="modalTitle">请选择健康顾问</h3>
+            <h3 class="modal-title" id="modalTitle">Choose Your Health Coach</h3>
             <div class="role-grid">
                 <div class="role-item" data-type="nutritionist">
                     <div class="role-icon">🍽️</div>
-                    <div class="role-name">私人营养师</div>
+                    <div class="role-name">Nutrition Coach</div>
                 </div>
                 <div class="role-item" data-type="trainer">
                     <div class="role-icon">🏋️</div>
-                    <div class="role-name">健身教练</div>
+                    <div class="role-name">Fitness Coach</div>
                 </div>
                 <div class="role-item" data-type="health_keeper">
                     <div class="role-icon">🌿</div>
-                    <div class="role-name">养生专家</div>
+                    <div class="role-name">Wellness Guide</div>
                 </div>
                 <div class="role-item" data-type="therapist">
                     <div class="role-icon">🧠</div>
-                    <div class="role-name">心理辅导师</div>
+                    <div class="role-name">Mind Support</div>
                 </div>
             </div>
-            <button class="close-btn" onclick="closeModal()">取消</button>
+            <button class="close-btn" onclick="closeModal()">Close</button>
         </div>
     </div>
 
     <script>
-        // 1. URL参数
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             return {
                 agent: params.get("agent") || "nutritionist",
                 isTeam: params.get("isTeam") === "true",
-                lang: params.get("lang") || "zh-CN"
+                lang: "en-US"
             };
         }
         const urlData = getUrlParams();
         let currentAgent = urlData.agent;
-        let currentLang = urlData.lang;
+        let currentLang = "en-US";
         const defaultTeamMode = urlData.isTeam;
 
-        // 2. 语言包
         const i18n = {
-            "zh-CN": {
-                welcome: "你好，我是你的{name}，有什么可以帮你的？",
-                team_welcome: "你好，我们是健康管理团队，将为你提供联合会诊建议～",
-                placeholder: "请输入你的健康问题...",
-                send: "发送",
-                team_consult: "寻求团队建议",
-                modal_title: "请选择健康顾问"
-            },
             "en-US": {
-                welcome: "Hello, I'm your {name}, how can I help you?",
-                team_welcome: "Hello, we are health team, ready for consultation～",
-                placeholder: "Enter your health question...",
+                welcome: "Hi there! I'm your personal {name}. How can I help you today?",
+                team_welcome: "Hi! We’re your personal health team. We’re here to support you together 💛",
+                placeholder: "Share how you’re feeling...",
                 send: "Send",
-                team_consult: "Team Consultation",
-                modal_title: "Choose Your Consultant"
+                team_consult: "Ask Team",
+                modal_title: "Choose Your Health Coach"
             }
         };
 
-        // 3. 角色配置
         const agentConfig = {
-            nutritionist: { name: "私人营养师", icon: "🍽️" },
-            trainer: { name: "健身教练", icon: "🏋️" },
-            health_keeper: { name: "养生专家", icon: "🌿" },
-            therapist: { name: "心理辅导师", icon: "🧠" }
+            nutritionist: { name: "Nutrition Coach", icon: "🍽️" },
+            trainer: { name: "Fitness Coach", icon: "🏋️" },
+            health_keeper: { name: "Wellness Guide", icon: "🌿" },
+            therapist: { name: "Mind Support", icon: "🧠" }
         };
 
-        // 4. DOM
         const messageArea = document.getElementById("messageArea");
         const inputText = document.getElementById("inputText");
         const sendBtn = document.getElementById("sendBtn");
         const teamBtn = document.getElementById("teamBtn");
         const agentTitle = document.getElementById("agentTitle");
-        const langBtns = document.querySelectorAll(".lang-btn");
         const roleModal = document.getElementById("roleModal");
         const modalTitle = document.getElementById("modalTitle");
         const roleItems = document.querySelectorAll(".role-item");
 
-        // 5. 页面初始化
         function init() {
-            langBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.lang === currentLang));
             refreshLangText();
             loadWelcomeMessage();
         }
 
-        // 刷新语言
         function refreshLangText() {
             inputText.placeholder = i18n[currentLang].placeholder;
             sendBtn.textContent = i18n[currentLang].send;
@@ -365,7 +309,6 @@
             modalTitle.textContent = i18n[currentLang].modal_title;
         }
 
-        // 欢迎语
         function loadWelcomeMessage() {
             messageArea.innerHTML = "";
             const agent = agentConfig[currentAgent];
@@ -373,14 +316,13 @@
             
             if(defaultTeamMode) {
                 welcome = i18n[currentLang].team_welcome;
-                agentTitle.textContent = "👥 健康团队联合会诊";
+                agentTitle.textContent = "👥 Health Team Support";
             } else {
                 agentTitle.textContent = `${agent.icon} ${agent.name}`;
             }
             addMessage(welcome, "ai", defaultTeamMode);
         }
 
-        // 消息渲染
         function addMessage(text, role, isTeam = false) {
             const wrap = document.createElement("div");
             wrap.className = `msg-wrapper ${role}`;
@@ -403,39 +345,25 @@
             messageArea.scrollTop = messageArea.scrollHeight;
         }
 
-        // 🔥 弹窗操作
         function openModal() { roleModal.classList.add("show"); }
         function closeModal() { roleModal.classList.remove("show"); }
 
-        // 切换角色（弹窗选择后）
         function changeAgent(type) {
             currentAgent = type;
             closeModal();
             loadWelcomeMessage();
         }
 
-        // 返回首页
         function goBack() { window.location.href = "index.html"; }
 
-        // 语言切换
-        function changeLang(lang) {
-            currentLang = lang;
-            langBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.lang === lang));
-            refreshLangText();
-            loadWelcomeMessage();
-        }
-
-        // 发送消息
         async function sendMessage(isTeam) {
             const text = inputText.value.trim();
             if(!text) return;
             addMessage(text, "user");
             inputText.value = "";
-            addMessage(isTeam ? "团队正在为你解答..." : "正在为你解答...", "ai", isTeam);
+            addMessage(isTeam ? "Our team is preparing a warm response for you..." : "I'm thinking...", "ai", isTeam);
         }
 
-        // 绑定事件
-        langBtns.forEach(btn => btn.addEventListener("click", () => changeLang(btn.dataset.lang)));
         roleItems.forEach(item => item.addEventListener("click", () => changeAgent(item.dataset.type)));
         sendBtn.addEventListener("click", () => sendMessage(false));
         teamBtn.addEventListener("click", () => sendMessage(true));
