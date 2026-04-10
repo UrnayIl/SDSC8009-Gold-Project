@@ -3,154 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with Your Personal Health Coach</title>
+    <title>Chat - Healthcare Manager</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Segoe UI", sans-serif;
+            font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
         }
+
         body {
-            background: linear-gradient(135deg, #eef2f7 0%, #f5f9ff 100%);
+            background: linear-gradient(150deg, #f7fafc 0%, #eaf5ff 40%, #f0e8ff 100%);
+            background-attachment: fixed;
             min-height: 100vh;
-            padding: 20px 15px;
+            padding: 30px 15px;
         }
+
         .container {
-            max-width: 900px;
+            max-width: 860px;
             margin: 0 auto;
         }
+
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
         .top-left {
             display: flex;
             gap: 8px;
         }
         .base-btn {
-            padding: 8px 14px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 20px;
-            background: #fff;
-            color: #4facfe;
+            border-radius: 22px;
+            background: #ffffff;
+            color: #3b82f6;
             cursor: pointer;
             font-size: 14px;
-            transition: 0.2s;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .base-btn.primary {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: #fff;
         }
         .base-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            padding: 8px 16px;
+            border-radius: 22px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .agent-title {
-            font-size: 24px;
-            color: #2d3748;
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
             font-weight: 600;
         }
+        .username {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .logout-btn {
+            font-size: 12px;
+            color: #64748b;
+            cursor: pointer;
+            margin-left: 4px;
+            white-space: nowrap;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .agent-title {
+            font-size: 26px;
+            color: #1e293b;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
         .chat-box {
-            background: #fff;
-            border-radius: 20px;
-            height: 560px;
+            background: #ffffff;
+            border-radius: 24px;
+            height: 580px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.07);
+            border: 1px solid rgba(255,255,255,0.6);
         }
         .message-area {
             flex: 1;
-            padding: 24px;
+            padding: 28px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 22px;
         }
+
         .msg-wrapper {
             display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            max-width: 80%;
+            align-items: flex-start;
+            gap: 12px;
+            max-width: 82%;
         }
         .msg-wrapper.user {
             align-self: flex-end;
             flex-direction: row-reverse;
         }
+
         .avatar {
-            width: 36px;
-            height: 36px;
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            min-height: 38px !important;
+            flex-shrink: 0;
             border-radius: 50%;
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+
         .msg-bubble {
-            padding: 12px 16px;
+            padding: 14px 18px;
             border-radius: 18px;
             line-height: 1.6;
             font-size: 15px;
-            background: #f7fafc;
+            background: #f8fafc;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .msg-wrapper.user .msg-bubble {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: white;
         }
-        .team-badge {
-            font-size: 12px;
-            color: #fff;
-            background: linear-gradient(90deg, #ff7eb3, #915afc);
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-bottom: 4px;
+        .agent-title {
+            position: relative;
             display: inline-block;
         }
+        /* 右上角 Team 徽章 */
+        .team-badge {
+            position: absolute;
+            top: 8px;
+            right: -35px;
+            transform: translate(30%, -30%);
+            font-style: italic;
+            font-size: 11px;
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(90deg, #8b5cf6, #ec4899);
+            padding: 2px 4px;
+            border-radius: 8px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
         .input-panel {
-            padding: 18px 20px;
-            border-top: 1px solid #edf2f7;
+            padding: 20px;
+            border-top: 1px solid #f1f5f9;
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
         }
         #inputText {
             flex: 1;
-            padding: 14px 20px;
+            padding: 16px 20px;
             border: 1px solid #e2e8f0;
-            border-radius: 30px;
+            border-radius: 28px;
             outline: none;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+        #inputText:focus {
+            border-color: #4dabff;
+            box-shadow: 0 0 0 3px rgba(77,171,255,0.15);
         }
         .btn {
-            padding: 14px 22px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 30px;
+            border-radius: 28px;
             color: white;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
-        #sendBtn { background: linear-gradient(135deg, #4facfe, #00f2a3); }
-        #teamBtn { background: linear-gradient(135deg, #915afc, #ff7eb3); }
+        #sendBtn {
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
+        }
+        #teamBtn {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
 
+        /* 全局弹窗样式 */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.25);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 999;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
         }
         .modal.show {
             display: flex;
@@ -158,73 +243,150 @@
         .modal-content {
             background: #fff;
             width: 90%;
-            max-width: 500px;
-            border-radius: 20px;
-            padding: 30px;
+            max-width: 520px;
+            border-radius: 24px;
+            padding: 36px;
             text-align: center;
-            animation: modalShow 0.3s;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            animation: modalShow 0.3s ease;
         }
         @keyframes modalShow {
-            from { opacity: 0; transform: scale(0.9); }
+            from { opacity: 0; transform: scale(0.92); }
             to { opacity: 1; transform: scale(1); }
         }
         .modal-title {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 24px;
+            color: #1e293b;
+            font-weight: 600;
         }
+
+        /* 🔥 强制2x2网格 + 名字永不换行 */
         .role-grid {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 16px !important;
+            width: 100% !important;
         }
         .role-item {
-            width: 100px;
-            padding: 16px 10px;
-            background: #f7fafc;
-            border-radius: 16px;
+            width: 100% !important;
+            max-width: 140px !important;
+            padding: 18px 8px !important;
+            background: #f8fafc;
+            border-radius: 18px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.25s ease;
+            text-align: center;
+            margin: 0 auto;
         }
         .role-item:hover {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: #fff;
+            transform: translateY(-4px);
         }
         .role-icon {
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 8px;
         }
+        /* 🔥 核心修复：名字绝对不换行 */
         .role-name {
-            font-size: 13px;
+            font-size: 12px !important;
+            font-weight: 500;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            width: 100% !important;
+        }
+
+        /* 登录注册弹窗样式 */
+        .input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            outline: none;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
+            color: white;
+            border: none;
+            font-weight: 500;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .toggle-text {
+            text-align: center;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .toggle-text span {
+            color: #3b82f6;
+            cursor: pointer;
+            font-weight: 500;
         }
         .close-btn {
-            margin-top: 20px;
-            padding: 8px 20px;
+            margin-top: 24px;
+            padding: 10px 24px;
             border: none;
             border-radius: 20px;
             background: #f1f5f9;
             cursor: pointer;
+            font-weight: 500;
         }
 
-        /* 让 Markdown 内容美观 */
         .msg-bubble h3 {
             font-size: 16px;
-            margin: 4px 0 6px 0;
+            margin: 4px 0 8px 0;
             font-weight: 600;
         }
         .msg-bubble strong {
             font-weight: 600;
         }
         .msg-bubble ul {
-            margin: 6px 0;
-            padding-left: 18px;
+            margin: 8px 0;
+            padding-left: 20px;
         }
         .msg-bubble li {
-            margin: 2px 0;
+            margin: 4px 0;
+        }
+
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 26px;
+            border-radius: 14px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            top: 34px;
         }
     </style>
 </head>
+
 <body>
 <div class="container">
     <div class="top-bar">
@@ -232,25 +394,27 @@
             <button class="base-btn" onclick="goBack()">← Back</button>
             <button class="base-btn primary" onclick="openModal()">Change Coach</button>
         </div>
+        <div id="authArea"></div>
     </div>
 
     <div class="header">
-        <h2 class="agent-title" id="agentTitle">Chat with Your Personal Health Coach</h2>
+        <h2 class="agent-title" id="agentTitle">Chat with Your Coach</h2>
     </div>
 
     <div class="chat-box">
         <div class="message-area" id="messageArea"></div>
         <div class="input-panel">
-            <input type="text" id="inputText" placeholder="Share how you’re feeling...">
+            <input type="text" id="inputText" placeholder="Type your message...">
             <button class="btn" id="sendBtn">Send</button>
-            <button class="btn" id="teamBtn">Ask Team</button>
+            <button class="btn" id="teamBtn" onclick="goToTeamChat()">Ask Team</button>
         </div>
     </div>
 </div>
 
+<!-- 选择教练弹窗 -->
 <div class="modal" id="roleModal">
     <div class="modal-content">
-        <h3 class="modal-title" id="modalTitle">Choose Your Health Coach</h3>
+        <h3 class="modal-title">Choose Your Health Coach</h3>
         <div class="role-grid">
             <div class="role-item" data-type="nutritionist">
                 <div class="role-icon">🍽️</div>
@@ -265,7 +429,7 @@
                 <div class="role-name">Wellness Guide</div>
             </div>
             <div class="role-item" data-type="therapist">
-                <div class="role-icon">🧠</div>
+                <div class="role-icon">❤️‍🩹</div>
                 <div class="role-name">Mind Support</div>
             </div>
         </div>
@@ -273,7 +437,50 @@
     </div>
 </div>
 
+<!-- 登录弹窗 -->
+<div class="modal" id="loginModal">
+    <div class="modal-content">
+        <h2 class="modal-title">Sign In</h2>
+        <div class="input-group">
+            <label>Username or Email</label>
+            <input type="text" id="loginUser" placeholder="Enter username or email">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="loginPwd" placeholder="Enter your password">
+        </div>
+        <button class="submit-btn" onclick="handleLogin()">Sign In</button>
+        <p class="toggle-text">Don't have an account? <span onclick="showRegister()">Sign Up</span></p>
+        <button class="close-btn" onclick="closeAllModals()">Explore as Guest</button>
+    </div>
+</div>
+
+<!-- 注册弹窗 -->
+<div class="modal" id="registerModal">
+    <div class="modal-content">
+        <h2 class="modal-title">Create Account</h2>
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="regName" placeholder="Enter your username">
+        </div>
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="regEmail" placeholder="Enter your email">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="regPwd" placeholder="Set a password">
+        </div>
+        <button class="submit-btn" onclick="handleRegister()">Sign Up</button>
+        <p class="toggle-text">Already have an account? <span onclick="showLogin()">Sign In</span></p>
+        <button class="close-btn" onclick="closeAllModals()">Close</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
+    // 获取URL参数
     function getUrlParams() {
         const params = new URLSearchParams(window.location.search);
         return {
@@ -287,6 +494,17 @@
     let currentLang = "en-US";
     const defaultTeamMode = urlData.isTeam;
 
+    // 用户名
+    function getUserName() {
+        try {
+            const user = JSON.parse(localStorage.getItem("user"));
+            return user?.username || "";
+        } catch (e) {
+            return "";
+        }
+    }
+
+    // 多语言
     const i18n = {
         "en-US": {
             welcome: {
@@ -295,68 +513,157 @@
                 health_keeper: "Hello. I'm your Wellness Guide. Take your time — how would you like to feel better today?",
                 therapist: "Hi. I'm here as your Mind Support. Whatever you’re feeling is okay — I’m ready to listen."
             },
-            team_welcome: "Hi! We’re your health team. We’re here to support you together 💛",
-            placeholder: "Share how you’re feeling...",
+            team_welcome: `Hi ${getUserName() || ""}, welcome to your personal healthcare management team! 
+            Here is your personal healthcare manager, I will lead our team to support you with:
+            • Nutrition
+            • Fitness
+            • Wellness
+            • Mental Health
+
+            What can we help you with today? 💛`,
+            placeholder: "Type your message...",
             send: "Send",
             team_consult: "Ask Team",
             modal_title: "Choose Your Health Coach"
         }
     };
 
+    // 教练配置
     const agentConfig = {
         nutritionist: { name: "Nutrition Coach", icon: "🍽️" },
         trainer: { name: "Fitness Coach", icon: "🏋️" },
         health_keeper: { name: "Wellness Guide", icon: "🌿" },
-        therapist: { name: "Mind Support", icon: "🧠" }
+        therapist: { name: "Mind Support", icon: "❤️‍🩹" },
+        team: { name: "Healthcare Manager", icon: "🧑‍⚕️" }
     };
 
+    // DOM元素
     const messageArea = document.getElementById("messageArea");
     const inputText = document.getElementById("inputText");
     const sendBtn = document.getElementById("sendBtn");
     const teamBtn = document.getElementById("teamBtn");
     const agentTitle = document.getElementById("agentTitle");
     const roleModal = document.getElementById("roleModal");
-    const modalTitle = document.getElementById("modalTitle");
-    const roleItems = document.querySelectorAll(".role-item");
 
-    // ==============================================
-    // 核心：Markdown 解析函数（自动转成富文本）
-    // ==============================================
+    // 提示框
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(()=>t.classList.remove("show"), 2300);
+    }
+
+    // 初始化
+    window.onload = function() {
+        init();
+        syncAuthUI();
+    };
+
+    // ======================
+    // 🔥 修复1：登录注册弹窗
+    // ======================
+    function showLogin(){
+        closeAllModals();
+        document.getElementById("loginModal").classList.add("show");
+    }
+    function showRegister(){
+        closeAllModals();
+        document.getElementById("registerModal").classList.add("show");
+    }
+    function closeAllModals(){
+        document.querySelectorAll(".modal").forEach(m=>m.classList.remove("show"));
+    }
+
+    // 注册逻辑
+    function handleRegister() {
+        const name = document.getElementById("regName").value?.trim();
+        const email = document.getElementById("regEmail").value?.trim();
+        const pwd = document.getElementById("regPwd").value?.trim();
+        if (!name || !email || !pwd) { showToast("Please fill all fields"); return; }
+        localStorage.setItem("user", JSON.stringify({ username:name, email, pwd }));
+        showToast("Account created! Please sign in.");
+        closeAllModals();
+    }
+
+    // 登录逻辑
+    function handleLogin() {
+        const input = document.getElementById("loginUser").value?.trim();
+        const pwd = document.getElementById("loginPwd").value?.trim();
+        if (!input || !pwd) { showToast("Please enter username/email and password"); return; }
+        const userStr = localStorage.getItem("user");
+        if (!userStr) { showToast("No account found. Please sign up first."); return; }
+        const user = JSON.parse(userStr);
+        const ok = (input === user.username || input === user.email) && pwd === user.pwd;
+        if (ok) {
+            localStorage.setItem("isLogin", "true");
+            showToast("Login successful! Welcome back!");
+            closeAllModals();
+            syncAuthUI();
+        } else {
+            showToast("Incorrect username/email or password");
+        }
+    }
+
+    // 同步登录状态
+    function syncAuthUI() {
+        const authArea = document.getElementById("authArea");
+        const isLogin = localStorage.getItem("isLogin") === "true";
+        let user;
+        try { user = JSON.parse(localStorage.getItem("user")) || { username: "Guest" }; }
+        catch (e) { user = { username: "Guest" }; }
+
+        if (isLogin) {
+            authArea.innerHTML = `
+            <div class="user-info">
+                <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
+                <span class="username">${user.username}</span>
+                <span class="logout-btn" onclick="logout()">Logout</span>
+            </div>`;
+        } else {
+            authArea.innerHTML = `
+            <div style="display:flex;gap:10px;">
+                <button class="base-btn" onclick="showLogin()">Sign In</button>
+                <button class="base-btn primary" onclick="showRegister()">Sign Up</button>
+            </div>`;
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem("isLogin");
+        syncAuthUI();
+        showToast("Logged out successfully");
+    }
+
+    // ======================
+    // 聊天功能
+    // ======================
     function renderMarkdown(text) {
         text = text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
             .replace(/- (.*?)(\n|$)/g, '<li>$1</li>')
             .replace(/\n/g, '<br>');
-        
-        text = text.replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>');
-        return text;
+        return text.replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>');
     }
 
     function init() {
-        refreshLangText();
         loadWelcomeMessage();
-    }
-
-    function refreshLangText() {
-        inputText.placeholder = i18n[currentLang].placeholder;
-        sendBtn.textContent = i18n[currentLang].send;
-        teamBtn.textContent = i18n[currentLang].team_consult;
-        modalTitle.textContent = i18n[currentLang].modal_title;
     }
 
     function loadWelcomeMessage() {
         messageArea.innerHTML = "";
+        if(defaultTeamMode) {
+            agentTitle.innerHTML = "🧑‍⚕️ Health Care Manager <span class='team-badge'>Team</span>";
+            addMessage(i18n[currentLang].team_welcome, "ai", true);
+
+            document.getElementById("teamBtn").style.display = "none";
+            return;
+        }
         const agent = agentConfig[currentAgent];
         let welcome = i18n[currentLang].welcome[currentAgent];
-        
-        if(defaultTeamMode) {
-            welcome = i18n[currentLang].team_welcome;
-            agentTitle.textContent = "👥 Health Team Support";
-        } else {
-            agentTitle.textContent = `${agent.icon} ${agent.name}`;
-        }
-        addMessage(welcome, "ai", defaultTeamMode);
+        agentTitle.textContent = `${agent.icon} ${agent.name}`;
+        addMessage(welcome, "ai", false);
+        document.getElementById("teamBtn").style.display = "inline-block";
     }
 
     function addMessage(text, role, isTeam = false) {
@@ -365,21 +672,12 @@
         
         const avatar = document.createElement("div");
         avatar.className = "avatar";
-        avatar.textContent = role === "user" ? "👤" : agentConfig[currentAgent].icon;
+        avatar.textContent = role === "user" ? "👤" : (isTeam ? "🧑‍⚕️" : agentConfig[currentAgent].icon);
 
         const bubble = document.createElement("div");
         bubble.className = "msg-bubble";
 
-        // ==============================================
-        // 关键：AI 消息自动解析 Markdown
-        // ==============================================
-        if (isTeam && role === "ai") {
-            bubble.innerHTML = `<span class="team-badge">${i18n[currentLang].team_consult}</span><br>${renderMarkdown(text)}`;
-        } else if (role === "ai") {
-            bubble.innerHTML = renderMarkdown(text);
-        } else {
-            bubble.textContent = text;
-        }
+        bubble.innerHTML = renderMarkdown(text);
 
         wrap.appendChild(avatar);
         wrap.appendChild(bubble);
@@ -387,31 +685,41 @@
         messageArea.scrollTop = messageArea.scrollHeight;
     }
 
+    // 教练弹窗
     function openModal() { roleModal.classList.add("show"); }
     function closeModal() { roleModal.classList.remove("show"); }
 
     function changeAgent(type) {
-        currentAgent = type;
+        window.location.href = `chat.html?agent=${type}&isTeam=false`;
         closeModal();
-        loadWelcomeMessage();
     }
 
+    // 返回
     function goBack() { window.location.href = "index.html"; }
 
+    // ======================
+    // 🔥 修复2：Ask Team跳转404
+    // ======================
+    function goToTeamChat() {
+        window.location.href = "chat.html?agent=team&isTeam=true";
+    }
+
+    // 发送消息
     async function sendMessage(isTeam) {
         const text = inputText.value.trim();
         if(!text) return;
         addMessage(text, "user");
         inputText.value = "";
-        addMessage(isTeam ? "Our team is preparing a warm response for you..." : "I'm thinking...", "ai", isTeam);
+        addMessage(isTeam ? "Our team is preparing your answer..." : "Thinking...", "ai", isTeam);
     }
 
-    roleItems.forEach(item => item.addEventListener("click", () => changeAgent(item.dataset.type)));
+    // 绑定事件
+    document.querySelectorAll(".role-item").forEach(item => {
+        item.addEventListener("click", () => changeAgent(item.dataset.type));
+    });
     sendBtn.addEventListener("click", () => sendMessage(false));
-    teamBtn.addEventListener("click", () => sendMessage(true));
+    teamBtn.addEventListener("click", goToTeamChat);
     inputText.addEventListener("keypress", e => e.key === "Enter" && sendMessage(false));
-
-    init();
 </script>
 </body>
 </html>
