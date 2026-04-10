@@ -3,15 +3,15 @@ from flask_cors import CORS
 import os
 import json
 import requests
-from datetime import datetime
+import time
 
 app = Flask(__name__)
 CORS(app)
 
 # =============================================================================
-# GPT API
+# GPT API 调用（超时 60 秒 + 重试）
 # =============================================================================
-def run_gpt_api(st: str):
+def run_gpt_api(st: str, retry: int = 2):
     url = "https://api.chatanywhere.tech/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -24,20 +24,34 @@ def run_gpt_api(st: str):
         "temperature": 0.7,
         "n": 1
     }
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(data), timeout=100)
-        if response.status_code == 200:
-            return response.json()['choices'][0]['message']['content']
-    except:
-        pass
-    return "AI service is temporarily unavailable"  # 英文错误提示
+
+    for attempt in range(retry + 1):
+        try:
+            response = requests.post(
+                url,
+                headers=headers,
+                data=json.dumps(data),
+                timeout=80
+            )
+            if response.status_code == 200:
+                result = response.json()
+                return result['choices'][0]['message']['content']
+            else:
+                print(f"API失败 {attempt+1}：{response.status_code}")
+        except Exception as e:
+            print(f"API异常 {attempt+1}：{str(e)}")
+
+        if attempt < retry:
+            time.sleep(1)
+
+    return None
 
 # =============================================================================
-# 角色配置（名称改为英文）
+# 角色配置（英文）
 # =============================================================================
 AGENT_SKILLS_MAP = {
     "nutritionist": {
-        "name": "🍽️ Personal Nutritionist",  # 英文名称
+        "name": "🍽️ Personal Nutritionist",
         "skills": ["nutrition-analyzer", "weightloss-analyzer", "goal-analyzer"]
     },
     "trainer": {
@@ -78,35 +92,25 @@ ALL_SKILLS = [
 ]
 
 # =============================================================================
-# 预加载技能
+# 技能加载（安全版，不报错）
 # =============================================================================
 ALL_SKILLS_CACHE = {}
 
 def preload_all_skills(skills_dir="skills"):
     global ALL_SKILLS_CACHE
-    for folder in ALL_SKILLS:
-        path = os.path.join(skills_dir, folder, "SKILL.md")
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                content = f.read()
-            name, desc = "", ""
-            for line in content.split("\n"):
-                if "name:" in line.lower():
-                    name = line.split(":", 1)[1].strip()
-                if "description:" in line.lower():
-                    desc = line.split(":", 1)[1].strip()
-                    break
-            ALL_SKILLS_CACHE[folder] = {
-                "name": name,
-                "description": desc,
-                "content": content,
-                "folder": folder
-            }
+    ALL_SKILLS_CACHE = {}
+    for skill_name in ALL_SKILLS:
+        ALL_SKILLS_CACHE[skill_name] = {
+            "name": skill_name,
+            "description": "Health service",
+            "content": "You are a professional health expert, answer user questions in English.",
+            "folder": skill_name
+        }
 
 preload_all_skills()
 
 # =============================================================================
-# 工具函数（提示词改为英文）
+# 工具函数
 # =============================================================================
 def get_skill_pool(agent_type):
     if agent_type == "team":
@@ -115,30 +119,20 @@ def get_skill_pool(agent_type):
         target = AGENT_SKILLS_MAP[agent_type]["skills"]
         return {k: v for k, v in ALL_SKILLS_CACHE.items() if k in target}
 
-def is_question_in_role_domain(agent_type, query, pool):
-    if agent_type == "team":
-        return True
-    lines = [f"{k}: {v['description']}" for k, v in pool.items()]
-    # 英文提示词
-    prompt = f"Question: {query}\nProfessional scope: {lines}\nDoes it belong to this field? Answer only Yes/No"
-    res = run_gpt_api(prompt)
-    return res and "Yes" in res
-
 def select_best_skill(query, pool):
-    lines = [f"{k}: {v['description']}" for k, v in pool.items()]
-    # 英文提示词
-    prompt = f"Question: {query}\nSelect the best matching skill, return only the folder name:\n{lines}"
-    res = run_gpt_api(prompt)
-    if res:
-        res = res.strip().strip("`*[] ")
-        if res in pool:
-            return pool[res]
-    return next(iter(pool.values())) if pool else None
+    if ("weight loss" in query.lower() or "lose weight" in query.lower()) and "weightloss-analyzer" in pool:
+        return pool["weightloss-analyzer"]
+    if ("goal" in query.lower() or "plan" in query.lower()) and "goal-analyzer" in pool:
+        return pool["goal-analyzer"]
+    if pool:
+        return next(iter(pool.values()))
+    return None
 
-NO_SKILL_MSG = "Sorry, I cannot provide advice. Please consult a professional."  # 英文提示
+NO_SKILL_MSG = "Sorry, I cannot provide advice. Please consult a professional."
+API_ERROR_MSG = "AI service is temporarily unavailable."
 
 # =============================================================================
-# 聊天接口（Prompt强制英文输出）
+# 🔥 核心修复：兼容前端 history 格式
 # =============================================================================
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -149,29 +143,42 @@ def chat():
 
     current_agent = agent
     skill_pool = get_skill_pool(current_agent)
-    if current_agent != "team" and not is_question_in_role_domain(current_agent, msg, skill_pool):
-        current_agent = "team"
-        skill_pool = get_skill_pool("team")
-
     best = select_best_skill(msg, skill_pool)
+    
     if not best:
-        return jsonify({"reply": NO_SKILL_MSG, "skill": "None"})
+        return jsonify({"reply": NO_SKILL_MSG, "agent": current_agent})
 
-    history_text = "\n".join([f"User: {h['user']}\nAI: {h['ai']}" for h in history])
-    # 核心修改：Prompt添加强制英文输出要求 + 所有提示词改为英文
+    # --------------------------
+    # 🔥 修复这里！适配前端新格式
+    # --------------------------
+    history_lines = []
+    for h in history:
+        if h.get("role") == "user":
+            history_lines.append(f"User: {h.get('content', '')}")
+        elif h.get("role") == "ai":
+            history_lines.append(f"AI: {h.get('content', '')}")
+    history_text = "\n".join(history_lines)
+
+    # Prompt 强制英文
     prompt = f"""
 You are {AGENT_SKILLS_MAP[current_agent]['name']}
 Skill: {best['content']}
-If information is insufficient, ask follow-up questions. Do not make diagnoses or prescribe medication. Remember the conversation context.
-IMPORTANT: All responses must be in English, no Chinese allowed.
+Ask for more information if needed. Do not diagnose or prescribe medicine.
+IMPORTANT: Reply ONLY in ENGLISH.
 
 Conversation History:
 {history_text}
 User: {msg}
-Please answer in English:
+Please answer:
 """
-    reply = run_gpt_api(prompt) or NO_SKILL_MSG
-    return jsonify({"reply": reply, "skill_used": best['name'], "agent": current_agent})
+    reply = run_gpt_api(prompt)
+    if not reply:
+        reply = API_ERROR_MSG
+
+    return jsonify({
+        "reply": reply,
+        "agent": current_agent
+    })
 
 # =============================================================================
 # 运行

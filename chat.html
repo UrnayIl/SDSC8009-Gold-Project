@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Consultation</title>
+    <title>Chat with Your Personal Health Coach</title>
     <style>
         * {
             margin: 0;
@@ -12,13 +12,13 @@
             font-family: "Segoe UI", sans-serif;
         }
         body {
-            background: #f5f9ff;
+            background: linear-gradient(135deg, #eef2f7 0%, #f5f9ff 100%);
             min-height: 100vh;
             padding: 20px 15px;
         }
         .container {
             max-width: 900px;
-            margin: auto;
+            margin: 0 auto;
         }
         .top-bar {
             display: flex;
@@ -40,11 +40,14 @@
             color: #4facfe;
             cursor: pointer;
             font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: 0.2s;
         }
         .base-btn.primary {
             background: linear-gradient(135deg, #4facfe, #00f2a3);
             color: #fff;
+        }
+        .base-btn:hover {
+            transform: translateY(-2px);
         }
         .header {
             text-align: center;
@@ -56,24 +59,32 @@
             font-weight: 600;
         }
         .chat-box {
-            max-width: 700px;
-            margin: auto;
             background: #fff;
-            border-radius: 16px;
-            padding: 20px;
-            height: 500px;
-            overflow-y: auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .msg {
-            margin: 15px 0;
+            border-radius: 20px;
+            height: calc(100vh - 180px);
+            min-height: 500px;
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+        .message-area {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .msg-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
             max-width: 80%;
         }
-        .msg.user {
+        .msg-wrapper.user {
+            align-self: flex-end;
             flex-direction: row-reverse;
-            margin-left: auto;
         }
         .avatar {
             width: 36px;
@@ -85,179 +96,388 @@
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            margin: 0 10px;
         }
-        .bubble {
+        .msg-bubble {
             padding: 12px 16px;
             border-radius: 18px;
-            background: #f8f9fa;
             line-height: 1.6;
+            font-size: 15px;
+            background: #f7fafc;
         }
-        .msg.user .bubble {
+        .msg-wrapper.user .msg-bubble {
             background: linear-gradient(135deg, #4facfe, #00f2a3);
             color: white;
         }
-        .skill {
+        .team-badge {
             font-size: 12px;
-            color: #888;
+            color: #fff;
+            background: linear-gradient(90deg, #ff7eb3, #915afc);
+            padding: 2px 8px;
+            border-radius: 10px;
             margin-bottom: 4px;
+            display: inline-block;
         }
-        .input-area {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #fff;
-            padding: 12px 20px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        .input-panel {
+            padding: 18px 20px;
+            border-top: 1px solid #edf2f7;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
-        #input {
+        #inputText {
             flex: 1;
-            padding: 12px 20px;
+            padding: 14px 20px;
             border: 1px solid #e2e8f0;
-            border-radius: 24px;
+            border-radius: 30px;
             outline: none;
-            font-size: 14px;
         }
         .btn {
-            padding: 12px 24px;
+            padding: 14px 22px;
             border: none;
-            border-radius: 24px;
+            border-radius: 30px;
             color: white;
             cursor: pointer;
-            font-size: 14px;
         }
         #sendBtn { background: linear-gradient(135deg, #4facfe, #00f2a3); }
         #teamBtn { background: linear-gradient(135deg, #915afc, #ff7eb3); }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: #fff;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            animation: modalShow 0.3s;
+        }
+        @keyframes modalShow {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        .role-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .role-item {
+            width: 100px;
+            padding: 16px 10px;
+            background: #f7fafc;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .role-item:hover {
+            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            color: #fff;
+        }
+        .role-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .role-name {
+            font-size: 13px;
+        }
+        .close-btn {
+            margin-top: 20px;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            background: #f1f5f9;
+            cursor: pointer;
+        }
+
+        .msg-bubble h1, .msg-bubble h2, .msg-bubble h3, .msg-bubble h4 {
+            margin: 8px 0 4px 0;
+            font-weight: 600;
+        }
+        .msg-bubble h1 { font-size: 18px; }
+        .msg-bubble h2 { font-size: 17px; }
+        .msg-bubble h3 { font-size: 16px; }
+        .msg-bubble h4 { font-size: 15px; }
+        .msg-bubble strong { font-weight: 600; }
+        .msg-bubble em { font-style: italic; color: inherit; }
+        .msg-bubble ul, .msg-bubble ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        .msg-bubble li { margin: 4px 0; }
+        .msg-bubble code {
+            background: rgba(0,0,0,0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .msg-bubble a {
+            color: #4facfe;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        .msg-bubble hr {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="top-bar">
-            <div class="top-left">
-                <button class="base-btn" onclick="location.href='index.html'">← Back to Home</button>
-                <button class="base-btn primary">Change Specialist</button>
-            </div>
-        </div>
-
-        <div class="header">
-            <h2 class="agent-title" id="title">🍽️ Personal Nutritionist</h2>
-        </div>
-
-        <div class="chat-box" id="chat"></div>
-
-        <div class="input-area">
-            <input id="input" placeholder="Share your health questions...">
-            <button class="btn" id="sendBtn">Send</button>
-            <button class="btn" id="teamBtn">Ask Team for Advice</button>
+<div class="container">
+    <div class="top-bar">
+        <div class="top-left">
+            <button class="base-btn" onclick="goBack()">← Back</button>
+            <button class="base-btn primary" onclick="openModal()">Change Coach</button>
         </div>
     </div>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentAgent = urlParams.get('agent') || 'nutritionist';
-        const history = [];
+    <div class="header">
+        <h2 class="agent-title" id="agentTitle">Chat with Your Personal Health Coach</h2>
+    </div>
 
-        // Backend API address
-        const API_BASE = "http://localhost:5177/api/chat";
+    <div class="chat-box">
+        <div class="message-area" id="messageArea"></div>
+        <div class="input-panel">
+            <input type="text" id="inputText" placeholder="Share how you’re feeling...">
+            <button class="btn" id="sendBtn">Send</button>
+            <button class="btn" id="teamBtn">Ask Team</button>
+        </div>
+    </div>
+</div>
 
-        // Agent name mapping (English)
-        const agentNames = {
-            nutritionist: "🍽️ Personal Nutritionist",
-            trainer: "🏋️ Fitness Trainer",
-            health_keeper: "🌿 Wellness Expert",
-            therapist: "🧠 Mental Health Counselor",
-            team: "🏥 Team Consultation"
+<div class="modal" id="roleModal">
+    <div class="modal-content">
+        <h3 class="modal-title" id="modalTitle">Choose Your Health Coach</h3>
+        <div class="role-grid">
+            <div class="role-item" data-type="nutritionist">
+                <div class="role-icon">🍽️</div>
+                <div class="role-name">Nutrition Coach</div>
+            </div>
+            <div class="role-item" data-type="trainer">
+                <div class="role-icon">🏋️</div>
+                <div class="role-name">Fitness Coach</div>
+            </div>
+            <div class="role-item" data-type="health_keeper">
+                <div class="role-icon">🌿</div>
+                <div class="role-name">Wellness Guide</div>
+            </div>
+            <div class="role-item" data-type="therapist">
+                <div class="role-icon">🧠</div>
+                <div class="role-name">Mind Support</div>
+            </div>
+        </div>
+        <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            agent: params.get("agent") || "nutritionist",
+            isTeam: params.get("isTeam") === "true",
         };
+    }
+    const urlData = getUrlParams();
+    let currentAgent = urlData.agent;
+    const defaultTeamMode = urlData.isTeam;
+    const API_URL = "http://localhost:5177/api/chat";
 
-        // Initialize page title
-        document.getElementById('title').innerText = agentNames[currentAgent];
+    const i18n = {
+        "en-US": {
+            welcome: {
+                nutritionist: "Hi there! I'm your personal Nutrition Coach. Let’s build healthy habits that fit your life — how can I help you today?",
+                trainer: "Hey! I'm your Fitness Coach. Let’s get moving safely and hit your goals — what do you want to work on today?",
+                health_keeper: "Hello. I'm your Wellness Guide. Take your time — how would you like to feel better today?",
+                therapist: "Hi. I'm here as your Mind Support. Whatever you’re feeling is okay — I’m ready to listen."
+            },
+            team_welcome: "Hi! We’re your health team. We’re here to support you together 💛",
+            placeholder: "Share how you’re feeling...",
+            send: "Send",
+            team_consult: "Ask Team",
+            modal_title: "Choose Your Health Coach"
+        }
+    };
 
-        // Add message to chat interface
-        function addMessage(text, isUser, skillName = "") {
-            const chatDiv = document.getElementById('chat');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `msg ${isUser ? 'user' : 'bot'}`;
-            
-            // Format line breaks
-            const formattedText = text.replace(/\n/g, '<br>');
-            
-            let skillHtml = skillName ? `<div class="skill">Skill used: ${skillName}</div>` : '';
-            msgDiv.innerHTML = `${skillHtml}<div class="bubble">${formattedText}</div>`;
-            
-            chatDiv.appendChild(msgDiv);
-            chatDiv.scrollTop = chatDiv.scrollHeight;
+    const agentConfig = {
+        nutritionist: { name: "Nutrition Coach", icon: "🍽️" },
+        trainer: { name: "Fitness Coach", icon: "🏋️" },
+        health_keeper: { name: "Wellness Guide", icon: "🌿" },
+        therapist: { name: "Mind Support", icon: "🧠" }
+    };
+
+    const messageArea = document.getElementById("messageArea");
+    const inputText = document.getElementById("inputText");
+    const sendBtn = document.getElementById("sendBtn");
+    const teamBtn = document.getElementById("teamBtn");
+    const agentTitle = document.getElementById("agentTitle");
+    const roleModal = document.getElementById("roleModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const roleItems = document.querySelectorAll(".role-item");
+    const chatHistory = [];
+
+    function renderMarkdown(text) {
+        text = text
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+
+        const rules = [
+            { regex: /^### (.*$)/gm, replace: '<h3>$1</h3>' },
+            { regex: /^## (.*$)/gm, replace: '<h2>$1</h2>' },
+            { regex: /^# (.*$)/gm, replace: '<h1>$1</h1>' },
+            { regex: /\*\*(.*?)\*\*/g, replace: '<strong>$1</strong>' },
+            { regex: /\*(.*?)\*/g, replace: '<em>$1</em>' },
+            { regex: /`(.*?)`/g, replace: '<code>$1</code>' },
+            { regex: /\[([^\]]+)\]\(([^)]+)\)/g, replace: '<a href="$2" target="_blank">$1</a>' },
+            { regex: /^---$/gm, replace: '<hr>' },
+            { regex: /^- (.*$)/gm, replace: '<li>$1</li>' },
+            { regex: /^\d+\. (.*$)/gm, replace: '<li>$1</li>' },
+            { regex: /\n/g, replace: '<br>' }
+        ];
+
+        rules.forEach(rule => {
+            text = text.replace(rule.regex, rule.replace);
+        });
+
+        text = text
+            .replace(/(<li>.*?<\/li>)(<li>.*?<\/li>)+/g, '<ul>$&</ul>')
+            .replace(/<ul><li>(\d+)\. /g, '<ol><li>')
+            .replace(/<\/ul>(?=\s*<li>\d+\. )/g, '</ol>');
+
+        return text;
+    }
+
+    function init() {
+        inputText.placeholder = i18n["en-US"].placeholder;
+        sendBtn.textContent = i18n["en-US"].send;
+        teamBtn.textContent = i18n["en-US"].team_consult;
+        modalTitle.textContent = i18n["en-US"].modal_title;
+        loadWelcomeMessage();
+    }
+
+    function loadWelcomeMessage() {
+        messageArea.innerHTML = "";
+        const agent = agentConfig[currentAgent];
+        let welcome = i18n["en-US"].welcome[currentAgent];
+        
+        if(defaultTeamMode) {
+            welcome = i18n["en-US"].team_welcome;
+            agentTitle.textContent = "👥 Health Team Support";
+        } else {
+            agentTitle.textContent = `${agent.icon} ${agent.name}`;
+        }
+        addMessage(welcome, "ai", defaultTeamMode);
+    }
+
+    function addMessage(text, role, isTeam = false) {
+        const wrap = document.createElement("div");
+        wrap.className = `msg-wrapper ${role}`;
+        
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = role === "user" ? "👤" : agentConfig[currentAgent].icon;
+
+        const bubble = document.createElement("div");
+        bubble.className = "msg-bubble";
+
+        if (role === "ai") {
+            bubble.innerHTML = renderMarkdown(text);
+        } else {
+            bubble.textContent = text;
         }
 
-        // Send message to backend
-        async function sendMessage(isTeamMode = false) {
-            const inputEl = document.getElementById('input');
-            const userText = inputEl.value.trim();
-            
-            if (!userText) return;
+        wrap.appendChild(avatar);
+        wrap.appendChild(bubble);
+        messageArea.appendChild(wrap);
+        messageArea.scrollTop = messageArea.scrollHeight;
+    }
 
-            // Add user message to UI
-            addMessage(userText, true);
-            inputEl.value = '';
+    function openModal() { roleModal.classList.add("show"); }
+    function closeModal() { roleModal.classList.remove("show"); }
+    function goBack() { window.location.href = "index.html"; }
 
-            try {
-                // Call Flask backend
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        agent_type: isTeamMode ? "team" : currentAgent,
-                        message: userText,
-                        history: history
-                    })
-                });
+    function changeAgent(type) {
+        currentAgent = type;
+        closeModal();
+        loadWelcomeMessage();
+        chatHistory.length = 0;
+    }
 
-                const result = await response.json();
-                
-                // Add AI response to UI
-                addMessage(result.reply, false, result.skill_used);
-                
-                // Save to history
-                history.push({
-                    user: userText,
-                    ai: result.reply
-                });
+    async function sendMessage(isTeamMode) {
+        const text = inputText.value.trim();
+        if (!text) return;
 
-                // Update title if switched to team mode
-                if (result.agent === "team" && !isTeamMode) {
-                    document.getElementById('title').innerText = agentNames.team;
-                }
+        addMessage(text, "user");
+        inputText.value = "";
+        chatHistory.push({ role: "user", content: text });
 
-            } catch (error) {
-                console.error("Failed to connect to AI:", error);
-                addMessage("❌ Failed to connect to server. Please ensure backend service is running.", false);
+        const loading = isTeamMode
+            ? "Our team is preparing a response for you..."
+            : "I'm thinking...";
+        addMessage(loading, "ai", isTeamMode);
+
+        try {
+            const res = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    agent_type: isTeamMode ? "team" : currentAgent,
+                    message: text,
+                    history: chatHistory
+                })
+            });
+
+            const data = await res.json();
+            messageArea.removeChild(messageArea.lastChild);
+
+            const reply = data.reply || "Sorry, I couldn't process that.";
+            addMessage(reply, "ai", isTeamMode);
+            chatHistory.push({ role: "ai", content: reply });
+
+            if (data.agent === "team") {
+                agentTitle.textContent = "👥 Health Team Support";
+                currentAgent = "team";
             }
+
+        } catch (err) {
+            messageArea.removeChild(messageArea.lastChild);
+            addMessage("⚠️ AI service is temporarily unavailable.", "ai");
         }
+    }
 
-        // Bind events
-        document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        document.getElementById('input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-        document.getElementById('teamBtn').addEventListener('click', function() {
-            sendMessage(true);
-        });
+    roleItems.forEach(item => {
+        item.addEventListener("click", () => changeAgent(item.dataset.type));
+    });
 
-        // Initial welcome message
-        window.onload = function() {
-            const welcomeMessages = {
-                nutritionist: "Hello! I'm your personal Nutritionist. How can I help you with your diet and nutrition today?",
-                trainer: "Hi there! I'm your Fitness Trainer. Let's work on your fitness goals together.",
-                health_keeper: "Welcome! I'm your Wellness Expert. Let's talk about improving your overall well-being.",
-                therapist: "Hello, I'm your Mental Health Counselor. I'm here to listen and support you.",
-                team: "Hi! Our expert team is here to help with all your health concerns."
-            };
-            addMessage(welcomeMessages[currentAgent], false);
-        };
-    </script>
+    sendBtn.addEventListener("click", () => sendMessage(false));
+    teamBtn.addEventListener("click", () => sendMessage(true));
+    inputText.addEventListener("keypress", e => {
+        if (e.key === "Enter") sendMessage(false);
+    });
+
+    init();
+</script>
 </body>
 </html>
