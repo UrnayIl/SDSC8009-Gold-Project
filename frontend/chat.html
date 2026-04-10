@@ -317,7 +317,7 @@
         function loadWelcomeMessage() {
             messageArea.innerHTML = "";
             const agent = agentConfig[currentAgent];
-            let welcome = i18n[currentLang].welcome.replace("{name}", agent.name);
+            let welcome = i18n[currentLang].welcome[currentAgent];
             
             if(defaultTeamMode) {
                 welcome = i18n[currentLang].team_welcome;
