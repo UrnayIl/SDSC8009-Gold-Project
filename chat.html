@@ -200,17 +200,20 @@
 
         // 添加消息到界面
         function addMessage(text, isUser, skillName = "") {
-            const chatDiv = document.getElementById('chat');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `msg ${isUser ? 'user' : 'bot'}`;
-            
-            let skillHtml = skillName ? `<div class="skill">使用技能：${skillName}</div>` : '';
-            msgDiv.innerHTML = skillHtml + `<div class="bubble">${text}</div>`;
-            
-            chatDiv.appendChild(msgDiv);
-            // 滚动到底部
-            chatDiv.scrollTop = chatDiv.scrollHeight;
+        const chatDiv = document.getElementById('chat');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${isUser ? 'user' : 'bot'}`;
+        
+        // 🔥 核心修改：把 \n 替换成 <br>，实现换行分段
+        const formattedText = text.replace(/\n/g, '<br>');
+        
+        let skillHtml = skillName ? `<div class="skill">使用技能：${skillName}</div>` : '';
+        msgDiv.innerHTML = skillHtml + `<div class="bubble">${formattedText}</div>`;
+        
+        chatDiv.appendChild(msgDiv);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
         }
+
 
         // 发送消息（核心：对接 Flask 接口）
         async function sendMessage(isTeamMode = false) {

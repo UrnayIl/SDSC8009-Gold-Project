@@ -124,8 +124,8 @@ def is_question_in_role_domain(agent_type, query, pool):
     return res and "是" in res
 
 def select_best_skill(query, pool):
-    if "减肥" in query or "减脂" in query and "weightloss-analyzer" in pool:
-        return pool["weightloss-analyzer"]
+    #if "减肥" in query or "减脂" in query and "weightloss-analyzer" in pool:
+    #    return pool["weightloss-analyzer"]
     lines = [f"{k}: {v['description']}" for k, v in pool.items()]
     prompt = f"问题：{query}\n选最匹配的技能，只返回文件夹名：\n{lines}"
     res = run_gpt_api(prompt)
@@ -149,10 +149,10 @@ def chat():
 
     current_agent = agent
     skill_pool = get_skill_pool(current_agent)
-
     if current_agent != "team" and not is_question_in_role_domain(current_agent, msg, skill_pool):
         current_agent = "team"
         skill_pool = get_skill_pool("team")
+    #print(skill_pool)
 
     best = select_best_skill(msg, skill_pool)
     if not best:
