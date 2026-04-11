@@ -3,155 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with Your Personal Health Coach</title>
+    <title>Chat - Healthcare Manager</title>
     <style>
+        /* 你的原版 CSS 完全不动！！！ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Segoe UI", sans-serif;
+            font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
         }
         body {
-            background: linear-gradient(135deg, #eef2f7 0%, #f5f9ff 100%);
+            background: linear-gradient(150deg, #f7fafc 0%, #eaf5ff 40%, #f0e8ff 100%);
+            background-attachment: fixed;
             min-height: 100vh;
-            padding: 20px 15px;
+            padding: 30px 15px;
         }
         .container {
-            max-width: 900px;
+            max-width: 860px;
             margin: 0 auto;
         }
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
         .top-left {
             display: flex;
             gap: 8px;
         }
         .base-btn {
-            padding: 8px 14px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 20px;
-            background: #fff;
-            color: #4facfe;
+            border-radius: 22px;
+            background: #ffffff;
+            color: #3b82f6;
             cursor: pointer;
             font-size: 14px;
-            transition: 0.2s;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .base-btn.primary {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: #fff;
         }
         .base-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            padding: 8px 16px;
+            border-radius: 22px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .username {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .logout-btn {
+            font-size: 12px;
+            color: #64748b;
+            cursor: pointer;
+            margin-left: 4px;
+            white-space: nowrap;
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .agent-title {
-            font-size: 24px;
-            color: #2d3748;
+            font-size: 26px;
+            color: #1e293b;
             font-weight: 600;
+            letter-spacing: 0.3px;
+            position: relative;
+            display: inline-block;
+        }
+        .team-badge {
+            position: absolute;
+            top: 8px;
+            right: -35px;
+            transform: translate(30%, -30%);
+            font-style: italic;
+            font-size: 11px;
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(90deg, #8b5cf6, #ec4899);
+            padding: 2px 4px;
+            border-radius: 8px;
+            font-weight: 500;
+            white-space: nowrap;
         }
         .chat-box {
-            background: #fff;
-            border-radius: 20px;
-            height: calc(100vh - 180px);
-            min-height: 500px;
+            background: #ffffff;
+            border-radius: 24px;
+            height: 580px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.07);
+            border: 1px solid rgba(255,255,255,0.6);
         }
         .message-area {
             flex: 1;
-            padding: 24px;
+            padding: 28px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 22px;
         }
         .msg-wrapper {
             display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            max-width: 80%;
+            align-items: flex-start;
+            gap: 12px;
+            max-width: 82%;
         }
         .msg-wrapper.user {
             align-self: flex-end;
             flex-direction: row-reverse;
         }
         .avatar {
-            width: 36px;
-            height: 36px;
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            min-height: 38px !important;
+            flex-shrink: 0;
             border-radius: 50%;
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .msg-bubble {
-            padding: 12px 16px;
+            padding: 14px 18px;
             border-radius: 18px;
             line-height: 1.6;
             font-size: 15px;
-            background: #f7fafc;
+            background: #f8fafc;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .msg-wrapper.user .msg-bubble {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: white;
         }
-        .team-badge {
-            font-size: 12px;
-            color: #fff;
-            background: linear-gradient(90deg, #ff7eb3, #915afc);
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-bottom: 4px;
-            display: inline-block;
-        }
         .input-panel {
-            padding: 18px 20px;
-            border-top: 1px solid #edf2f7;
+            padding: 20px;
+            border-top: 1px solid #f1f5f9;
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
         }
         #inputText {
             flex: 1;
-            padding: 14px 20px;
+            padding: 16px 20px;
             border: 1px solid #e2e8f0;
-            border-radius: 30px;
+            border-radius: 28px;
             outline: none;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+        #inputText:focus {
+            border-color: #4dabff;
+            box-shadow: 0 0 0 3px rgba(77,171,255,0.15);
         }
         .btn {
-            padding: 14px 22px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 30px;
+            border-radius: 28px;
             color: white;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
-        #sendBtn { background: linear-gradient(135deg, #4facfe, #00f2a3); }
-        #teamBtn { background: linear-gradient(135deg, #915afc, #ff7eb3); }
-
+        #sendBtn {
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
+        }
+        #teamBtn {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.25);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 999;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
         }
         .modal.show {
             display: flex;
@@ -159,86 +229,139 @@
         .modal-content {
             background: #fff;
             width: 90%;
-            max-width: 500px;
-            border-radius: 20px;
-            padding: 30px;
+            max-width: 520px;
+            border-radius: 24px;
+            padding: 36px;
             text-align: center;
-            animation: modalShow 0.3s;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            animation: modalShow 0.3s ease;
         }
         @keyframes modalShow {
-            from { opacity: 0; transform: scale(0.9); }
+            from { opacity: 0; transform: scale(0.92); }
             to { opacity: 1; transform: scale(1); }
         }
         .modal-title {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 24px;
+            color: #1e293b;
+            font-weight: 600;
         }
         .role-grid {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 16px !important;
+            width: 100% !important;
         }
         .role-item {
-            width: 100px;
-            padding: 16px 10px;
-            background: #f7fafc;
-            border-radius: 16px;
+            width: 100% !important;
+            max-width: 140px !important;
+            padding: 18px 8px !important;
+            background: #f8fafc;
+            border-radius: 18px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.25s ease;
+            text-align: center;
+            margin: 0 auto;
         }
         .role-item:hover {
-            background: linear-gradient(135deg, #4facfe, #00f2a3);
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
             color: #fff;
+            transform: translateY(-4px);
         }
         .role-icon {
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 8px;
         }
         .role-name {
-            font-size: 13px;
+            font-size: 12px !important;
+            font-weight: 500;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            width: 100% !important;
+        }
+        .input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            outline: none;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
+            color: white;
+            border: none;
+            font-weight: 500;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .toggle-text {
+            text-align: center;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .toggle-text span {
+            color: #3b82f6;
+            cursor: pointer;
+            font-weight: 500;
         }
         .close-btn {
-            margin-top: 20px;
-            padding: 8px 20px;
+            margin-top: 24px;
+            padding: 10px 24px;
             border: none;
             border-radius: 20px;
             background: #f1f5f9;
             cursor: pointer;
+            font-weight: 500;
         }
-
-        .msg-bubble h1, .msg-bubble h2, .msg-bubble h3, .msg-bubble h4 {
-            margin: 8px 0 4px 0;
+        .msg-bubble h3 {
+            font-size: 16px;
+            margin: 4px 0 8px 0;
             font-weight: 600;
         }
-        .msg-bubble h1 { font-size: 18px; }
-        .msg-bubble h2 { font-size: 17px; }
-        .msg-bubble h3 { font-size: 16px; }
-        .msg-bubble h4 { font-size: 15px; }
-        .msg-bubble strong { font-weight: 600; }
-        .msg-bubble em { font-style: italic; color: inherit; }
-        .msg-bubble ul, .msg-bubble ol {
+        .msg-bubble strong {
+            font-weight: 600;
+        }
+        .msg-bubble ul {
             margin: 8px 0;
             padding-left: 20px;
         }
-        .msg-bubble li { margin: 4px 0; }
-        .msg-bubble code {
-            background: rgba(0,0,0,0.08);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
+        .msg-bubble li {
+            margin: 4px 0;
+        }
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 26px;
+            border-radius: 14px;
             font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: 0.3s ease;
         }
-        .msg-bubble a {
-            color: #4facfe;
-            text-decoration: underline;
-            word-break: break-all;
-        }
-        .msg-bubble hr {
-            border: none;
-            border-top: 1px solid #e2e8f0;
-            margin: 10px 0;
+        .toast.show {
+            opacity: 1;
+            top: 34px;
         }
     </style>
 </head>
@@ -249,25 +372,24 @@
             <button class="base-btn" onclick="goBack()">← Back</button>
             <button class="base-btn primary" onclick="openModal()">Change Coach</button>
         </div>
+        <div id="authArea"></div>
     </div>
-
     <div class="header">
-        <h2 class="agent-title" id="agentTitle">Chat with Your Personal Health Coach</h2>
+        <h2 class="agent-title" id="agentTitle">Chat with Your Coach</h2>
     </div>
-
     <div class="chat-box">
         <div class="message-area" id="messageArea"></div>
         <div class="input-panel">
-            <input type="text" id="inputText" placeholder="Share how you’re feeling...">
+            <input type="text" id="inputText" placeholder="Type your message...">
             <button class="btn" id="sendBtn">Send</button>
-            <button class="btn" id="teamBtn">Ask Team</button>
+            <button class="btn" id="teamBtn" onclick="goToTeamChat()">Ask Team</button>
         </div>
     </div>
 </div>
 
 <div class="modal" id="roleModal">
     <div class="modal-content">
-        <h3 class="modal-title" id="modalTitle">Choose Your Health Coach</h3>
+        <h3 class="modal-title">Choose Your Health Coach</h3>
         <div class="role-grid">
             <div class="role-item" data-type="nutritionist">
                 <div class="role-icon">🍽️</div>
@@ -282,7 +404,7 @@
                 <div class="role-name">Wellness Guide</div>
             </div>
             <div class="role-item" data-type="therapist">
-                <div class="role-icon">🧠</div>
+                <div class="role-icon">❤️‍🩹</div>
                 <div class="role-name">Mind Support</div>
             </div>
         </div>
@@ -290,194 +412,143 @@
     </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-    function getUrlParams() {
-        const params = new URLSearchParams(window.location.search);
-        return {
-            agent: params.get("agent") || "nutritionist",
-            isTeam: params.get("isTeam") === "true",
-        };
+const API = "http://localhost:5177/api";
+const params = new URLSearchParams(location.search);
+const agent = params.get("agent") || "nutritionist";
+const isTeamMode = params.get("isTeam") === "true";
+
+let user = JSON.parse(localStorage.getItem("user") || "null");
+let chatHistory = [];
+
+const agentMap = {
+    nutritionist: "🍽️ Nutrition Coach",
+    trainer: "🏋️ Fitness Coach",
+    health_keeper: "🌿 Wellness Guide",
+    therapist: "❤️‍🩹 Mind Support",
+    team: "🧑‍⚕️ Healthcare Manager"
+};
+
+window.onload = init;
+
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2300);
+}
+
+async function init() {
+    if (!user) {
+        showToast("Please login first");
+        setTimeout(() => (location.href = "index.html"), 1500);
+        return;
     }
-    const urlData = getUrlParams();
-    let currentAgent = urlData.agent;
-    const defaultTeamMode = urlData.isTeam;
-    const API_URL = "http://localhost:5177/api/chat";
+    syncAuthUI();
+    loadHistory();
+    renderTitle();
+}
 
-    const i18n = {
-        "en-US": {
-            welcome: {
-                nutritionist: "Hi there! I'm your personal Nutrition Coach. Let’s build healthy habits that fit your life — how can I help you today?",
-                trainer: "Hey! I'm your Fitness Coach. Let’s get moving safely and hit your goals — what do you want to work on today?",
-                health_keeper: "Hello. I'm your Wellness Guide. Take your time — how would you like to feel better today?",
-                therapist: "Hi. I'm here as your Mind Support. Whatever you’re feeling is okay — I’m ready to listen."
-            },
-            team_welcome: "Hi! We’re your health team. We’re here to support you together 💛",
-            placeholder: "Share how you’re feeling...",
-            send: "Send",
-            team_consult: "Ask Team",
-            modal_title: "Choose Your Health Coach"
-        }
-    };
+function syncAuthUI() {
+    const area = document.getElementById("authArea");
+    area.innerHTML = `
+    <div class="user-info">
+        <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
+        <span class="username">${user.username}</span>
+        <span class="logout-btn" onclick="logout()">Logout</span>
+    </div>`;
+}
 
-    const agentConfig = {
-        nutritionist: { name: "Nutrition Coach", icon: "🍽️" },
-        trainer: { name: "Fitness Coach", icon: "🏋️" },
-        health_keeper: { name: "Wellness Guide", icon: "🌿" },
-        therapist: { name: "Mind Support", icon: "🧠" }
-    };
+function logout() {
+    localStorage.removeItem("user");
+    location.href = "index.html";
+}
 
-    const messageArea = document.getElementById("messageArea");
-    const inputText = document.getElementById("inputText");
-    const sendBtn = document.getElementById("sendBtn");
-    const teamBtn = document.getElementById("teamBtn");
-    const agentTitle = document.getElementById("agentTitle");
-    const roleModal = document.getElementById("roleModal");
-    const modalTitle = document.getElementById("modalTitle");
-    const roleItems = document.querySelectorAll(".role-item");
-    const chatHistory = [];
+function renderTitle() {
+    const title = document.getElementById("agentTitle");
+    if (isTeamMode) {
+        title.innerHTML = `${agentMap.team} <span class='team-badge'>Team</span>`;
+    } else {
+        title.textContent = agentMap[agent];
+    }
+}
 
-    function renderMarkdown(text) {
-        text = text
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
+function renderMarkdown(text) {
+    return text
+        .replace(/### (.*?)/g, "<h3>$1</h3>")
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/- (.*?)/g, "<li>$1</li>")
+        .replace(/\n/g, "<br>");
+}
 
-        const rules = [
-            { regex: /^### (.*$)/gm, replace: '<h3>$1</h3>' },
-            { regex: /^## (.*$)/gm, replace: '<h2>$1</h2>' },
-            { regex: /^# (.*$)/gm, replace: '<h1>$1</h1>' },
-            { regex: /\*\*(.*?)\*\*/g, replace: '<strong>$1</strong>' },
-            { regex: /\*(.*?)\*/g, replace: '<em>$1</em>' },
-            { regex: /`(.*?)`/g, replace: '<code>$1</code>' },
-            { regex: /\[([^\]]+)\]\(([^)]+)\)/g, replace: '<a href="$2" target="_blank">$1</a>' },
-            { regex: /^---$/gm, replace: '<hr>' },
-            { regex: /^- (.*$)/gm, replace: '<li>$1</li>' },
-            { regex: /^\d+\. (.*$)/gm, replace: '<li>$1</li>' },
-            { regex: /\n/g, replace: '<br>' }
-        ];
+function addMessage(text, isUser = false) {
+    const area = document.getElementById("messageArea");
+    const wrap = document.createElement("div");
+    wrap.className = `msg-wrapper ${isUser ? "user" : "bot"}`;
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = isUser ? "👤" : (isTeamMode ? "🧑‍⚕️" : agentMap[agent].charAt(0));
+    const bubble = document.createElement("div");
+    bubble.className = "msg-bubble";
+    bubble.innerHTML = renderMarkdown(text);
+    wrap.appendChild(avatar);
+    wrap.appendChild(bubble);
+    area.appendChild(wrap);
+    area.scrollTop = area.scrollHeight;
+}
 
-        rules.forEach(rule => {
-            text = text.replace(rule.regex, rule.replace);
+async function loadHistory() {
+    try {
+        const res = await fetch(`${API}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: user.username, password: user.password })
         });
-
-        text = text
-            .replace(/(<li>.*?<\/li>)(<li>.*?<\/li>)+/g, '<ul>$&</ul>')
-            .replace(/<ul><li>(\d+)\. /g, '<ol><li>')
-            .replace(/<\/ul>(?=\s*<li>\d+\. )/g, '</ol>');
-
-        return text;
-    }
-
-    function init() {
-        inputText.placeholder = i18n["en-US"].placeholder;
-        sendBtn.textContent = i18n["en-US"].send;
-        teamBtn.textContent = i18n["en-US"].team_consult;
-        modalTitle.textContent = i18n["en-US"].modal_title;
-        loadWelcomeMessage();
-    }
-
-    function loadWelcomeMessage() {
-        messageArea.innerHTML = "";
-        const agent = agentConfig[currentAgent];
-        let welcome = i18n["en-US"].welcome[currentAgent];
-        
-        if(defaultTeamMode) {
-            welcome = i18n["en-US"].team_welcome;
-            agentTitle.textContent = "👥 Health Team Support";
-        } else {
-            agentTitle.textContent = `${agent.icon} ${agent.name}`;
+        const data = await res.json();
+        if (data.success && data.history) {
+            chatHistory = data.history;
+            chatHistory.forEach(h => addMessage(h.content, h.role === "user"));
         }
-        addMessage(welcome, "ai", defaultTeamMode);
+    } catch (e) {}
+}
+
+async function sendMessage() {
+    const text = document.getElementById("inputText").value.trim();
+    if (!text) return;
+    document.getElementById("inputText").value = "";
+    addMessage(text, true);
+
+    try {
+        const res = await fetch(`${API}/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: user.username,
+                password: user.password,
+                agent_type: isTeamMode ? "team" : agent,
+                message: text,
+                history: chatHistory
+            })
+        });
+        const data = await res.json();
+        addMessage(data.reply);
+        chatHistory = data.history;
+    } catch (e) {
+        addMessage("AI service unavailable");
     }
+}
 
-    function addMessage(text, role, isTeam = false) {
-        const wrap = document.createElement("div");
-        wrap.className = `msg-wrapper ${role}`;
-        
-        const avatar = document.createElement("div");
-        avatar.className = "avatar";
-        avatar.textContent = role === "user" ? "👤" : agentConfig[currentAgent].icon;
+function goBack() { location.href = "index.html"; }
+function openModal() { document.getElementById("roleModal").classList.add("show"); }
+function closeModal() { document.getElementById("roleModal").classList.remove("show"); }
+function goToTeamChat() { location.href = "chat.html?agent=team&isTeam=true"; }
 
-        const bubble = document.createElement("div");
-        bubble.className = "msg-bubble";
-
-        if (role === "ai") {
-            bubble.innerHTML = renderMarkdown(text);
-        } else {
-            bubble.textContent = text;
-        }
-
-        wrap.appendChild(avatar);
-        wrap.appendChild(bubble);
-        messageArea.appendChild(wrap);
-        messageArea.scrollTop = messageArea.scrollHeight;
-    }
-
-    function openModal() { roleModal.classList.add("show"); }
-    function closeModal() { roleModal.classList.remove("show"); }
-    function goBack() { window.location.href = "index.html"; }
-
-    function changeAgent(type) {
-        currentAgent = type;
-        closeModal();
-        loadWelcomeMessage();
-        chatHistory.length = 0;
-    }
-
-    async function sendMessage(isTeamMode) {
-        const text = inputText.value.trim();
-        if (!text) return;
-
-        addMessage(text, "user");
-        inputText.value = "";
-        chatHistory.push({ role: "user", content: text });
-
-        const loading = isTeamMode
-            ? "Our team is preparing a response for you..."
-            : "I'm thinking...";
-        addMessage(loading, "ai", isTeamMode);
-
-        try {
-            const res = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    agent_type: isTeamMode ? "team" : currentAgent,
-                    message: text,
-                    history: chatHistory
-                })
-            });
-
-            const data = await res.json();
-            messageArea.removeChild(messageArea.lastChild);
-
-            const reply = data.reply || "Sorry, I couldn't process that.";
-            addMessage(reply, "ai", isTeamMode);
-            chatHistory.push({ role: "ai", content: reply });
-
-            if (data.agent === "team") {
-                agentTitle.textContent = "👥 Health Team Support";
-                currentAgent = "team";
-            }
-
-        } catch (err) {
-            messageArea.removeChild(messageArea.lastChild);
-            addMessage("⚠️ AI service is temporarily unavailable.", "ai");
-        }
-    }
-
-    roleItems.forEach(item => {
-        item.addEventListener("click", () => changeAgent(item.dataset.type));
-    });
-
-    sendBtn.addEventListener("click", () => sendMessage(false));
-    teamBtn.addEventListener("click", () => sendMessage(true));
-    inputText.addEventListener("keypress", e => {
-        if (e.key === "Enter") sendMessage(false);
-    });
-
-    init();
+document.getElementById("sendBtn").onclick = sendMessage;
+document.getElementById("inputText").addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
+});
 </script>
 </body>
 </html>

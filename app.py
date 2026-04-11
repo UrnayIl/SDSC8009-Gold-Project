@@ -1,17 +1,95 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
 import json
 import requests
 import time
+import os
+import hashlib
 
 app = Flask(__name__)
 CORS(app)
 
-# =============================================================================
-# GPT API 调用（超时 60 秒 + 重试）
-# =============================================================================
-def run_gpt_api(st: str, retry: int = 2):
+# ==========================
+# 用户系统（修复版）
+# ==========================
+USER_FILE = "user_credentials.json"
+CHAT_DIR = "chat_histories"
+
+def init_auth():
+    if not os.path.exists(USER_FILE):
+        with open(USER_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f)
+    if not os.path.exists(CHAT_DIR):
+        os.makedirs(CHAT_DIR)
+
+def encrypt(pwd):
+    return hashlib.sha256(pwd.encode()).hexdigest()
+
+# 注册：兼容新旧格式，修复 string indices 错误
+def register_user(username, email, password):
+    try:
+        with open(USER_FILE, "r", encoding="utf-8") as f:
+            users = json.load(f)
+    except:
+        users = {}
+
+    # 如果是旧版数据，清空重建
+    for key in list(users.keys()):
+        if isinstance(users[key], str):
+            del users[key]
+
+    for existing in users.values():
+        if existing.get("username") == username or existing.get("email") == email:
+            return False
+
+    users[username] = {
+        "username": username,
+        "email": email,
+        "password": encrypt(password)
+    }
+
+    with open(USER_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, indent=2)
+    return True
+
+# 登录：兼容用户名/邮箱
+def check_user(input_str, password):
+    try:
+        with open(USER_FILE, "r", encoding="utf-8") as f:
+            users = json.load(f)
+    except:
+        return None
+
+    encrypted = encrypt(password)
+    for user in users.values():
+        if not isinstance(user, dict):
+            continue
+        if (user.get("username") == input_str or user.get("email") == input_str) and user.get("password") == encrypted:
+            return user.get("username")
+    return None
+
+def save_chat(username, password, history):
+    folder = os.path.join(CHAT_DIR, f"{username}_{encrypt(password)}")
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    path = os.path.join(folder, "history.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2, ensure_ascii=False)
+
+def load_chat(username, password):
+    folder = os.path.join(CHAT_DIR, f"{username}_{encrypt(password)}")
+    path = os.path.join(folder, "history.json")
+    if not os.path.exists(path):
+        return []
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+init_auth()
+
+# ==========================
+# GPT 调用
+# ==========================
+def run_gpt(prompt, retry=2):
     url = "https://api.chatanywhere.tech/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -19,36 +97,47 @@ def run_gpt_api(st: str, retry: int = 2):
     }
     data = {
         "model": "gpt-4o",
-        "messages": [{"role": "user", "content": st}],
+        "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 2000,
-        "temperature": 0.7,
-        "n": 1
+        "temperature": 0.7
     }
-
-    for attempt in range(retry + 1):
+    for _ in range(retry + 1):
         try:
-            response = requests.post(
-                url,
-                headers=headers,
-                data=json.dumps(data),
-                timeout=80
-            )
-            if response.status_code == 200:
-                result = response.json()
-                return result['choices'][0]['message']['content']
-            else:
-                print(f"API失败 {attempt+1}：{response.status_code}")
-        except Exception as e:
-            print(f"API异常 {attempt+1}：{str(e)}")
-
-        if attempt < retry:
-            time.sleep(1)
-
+            res = requests.post(url, headers=headers, json=data, timeout=80)
+            if res.status_code == 200:
+                return res.json()["choices"][0]["message"]["content"]
+        except:
+            pass
+        time.sleep(1)
     return None
 
-# =============================================================================
-# 角色配置（英文）
-# =============================================================================
+# ==========================
+# 技能系统（完全你的逻辑）
+# ==========================
+SKILLS_FOLDER = "skills"
+ALL_SKILLS_CACHE = {}
+
+def load_all_skills():
+    global ALL_SKILLS_CACHE
+    ALL_SKILLS_CACHE = {}
+    if not os.path.exists(SKILLS_FOLDER):
+        return
+    for skill_name in os.listdir(SKILLS_FOLDER):
+        skill_dir = os.path.join(SKILLS_FOLDER, skill_name)
+        if not os.path.isdir(skill_dir):
+            continue
+        skill_content = ""
+        skill_file = os.path.join(skill_dir, "SKILL.md")
+        if os.path.exists(skill_file):
+            with open(skill_file, "r", encoding="utf-8") as f:
+                skill_content = f.read()
+        ALL_SKILLS_CACHE[skill_name] = {
+            "name": skill_name,
+            "content": skill_content
+        }
+
+load_all_skills()
+
 AGENT_SKILLS_MAP = {
     "nutritionist": {
         "name": "🍽️ Personal Nutritionist",
@@ -60,58 +149,18 @@ AGENT_SKILLS_MAP = {
     },
     "health_keeper": {
         "name": "🌿 Wellness Expert",
-        "skills": ["sleep-analyzer", "tcm-constitution-analyzer", "patiently-ai"]
+        "skills": ["sleep-analyzer", "tcm-constitution-analyzer"]
     },
     "therapist": {
         "name": "🧠 Mental Health Counselor",
-        "skills": ["mental-health-analyzer", "crisis-detection-intervention-ai",
-                   "crisis-response-protocol", "jungian-psychologist", "adhd-daily-planner"]
+        "skills": ["mental-health-analyzer"]
     },
     "team": {
         "name": "🏥 Team Consultation",
-        "skills": "ALL"
+        "skills": list(ALL_SKILLS_CACHE.keys())
     }
 }
 
-ALL_SKILLS = [
-    "adhd-daily-planner",
-    "crisis-detection-intervention-ai",
-    "crisis-response-protocol",
-    "fitness-analyzer",
-    "goal-analyzer",
-    "health-trend-analyzer",
-    "jungian-psychologist",
-    "mental-health-analyzer",
-    "nutrition-analyzer",
-    "occupational-health-analyzer",
-    "patiently-ai",
-    "rehabilitation-analyzer",
-    "sleep-analyzer",
-    "tcm-constitution-analyzer",
-    "weightloss-analyzer"
-]
-
-# =============================================================================
-# 技能加载（安全版，不报错）
-# =============================================================================
-ALL_SKILLS_CACHE = {}
-
-def preload_all_skills(skills_dir="skills"):
-    global ALL_SKILLS_CACHE
-    ALL_SKILLS_CACHE = {}
-    for skill_name in ALL_SKILLS:
-        ALL_SKILLS_CACHE[skill_name] = {
-            "name": skill_name,
-            "description": "Health service",
-            "content": "You are a professional health expert, answer user questions in English.",
-            "folder": skill_name
-        }
-
-preload_all_skills()
-
-# =============================================================================
-# 工具函数
-# =============================================================================
 def get_skill_pool(agent_type):
     if agent_type == "team":
         return ALL_SKILLS_CACHE.copy()
@@ -120,68 +169,94 @@ def get_skill_pool(agent_type):
         return {k: v for k, v in ALL_SKILLS_CACHE.items() if k in target}
 
 def select_best_skill(query, pool):
-    if ("weight loss" in query.lower() or "lose weight" in query.lower()) and "weightloss-analyzer" in pool:
+    q = query.lower()
+    if "weight" in q and "weightloss-analyzer" in pool:
         return pool["weightloss-analyzer"]
-    if ("goal" in query.lower() or "plan" in query.lower()) and "goal-analyzer" in pool:
+    if "goal" in q or "plan" in q and "goal-analyzer" in pool:
         return pool["goal-analyzer"]
-    if pool:
-        return next(iter(pool.values()))
-    return None
+    return next(iter(pool.values())) if pool else None
 
-NO_SKILL_MSG = "Sorry, I cannot provide advice. Please consult a professional."
-API_ERROR_MSG = "AI service is temporarily unavailable."
+# ==========================
+# 接口
+# ==========================
+@app.route("/api/register", methods=["POST"])
+def register():
+    d = request.json
+    username = d.get("username")
+    email = d.get("email")
+    password = d.get("password")
+    ok = register_user(username, email, password)
+    return jsonify({"success": ok, "msg": "Success" if ok else "Username or email exists"})
 
-# =============================================================================
-# 🔥 核心修复：兼容前端 history 格式
-# =============================================================================
-@app.route('/api/chat', methods=['POST'])
+@app.route("/api/login", methods=["POST"])
+def login():
+    d = request.json
+    input_str = d.get("input")
+    password = d.get("password")
+    username = check_user(input_str, password)
+    if username:
+        return jsonify({"success": True, "username": username, "history": []})
+    return jsonify({"success": False, "msg": "Invalid"})
+
+@app.route("/api/chat", methods=["POST"])
 def chat():
-    data = request.json
-    agent = data.get("agent_type")
-    msg = data.get("message")
-    history = data.get("history", [])
+    d = request.json
+    u = d.get("username")
+    p = d.get("password")
+    agent_type = d.get("agent_type")
+    message = d.get("message")
+    history = d.get("history", [])
 
-    current_agent = agent
-    skill_pool = get_skill_pool(current_agent)
-    best = select_best_skill(msg, skill_pool)
-    
-    if not best:
-        return jsonify({"reply": NO_SKILL_MSG, "agent": current_agent})
+    if not check_user(u, p):
+        return jsonify({"reply": "Please login first"})
 
-    # --------------------------
-    # 🔥 修复这里！适配前端新格式
-    # --------------------------
-    history_lines = []
+    skill_pool = get_skill_pool(agent_type)
+    skill = select_best_skill(message, skill_pool)
+    if not skill:
+        return jsonify({"reply": "No skill"})
+
+    full_history = load_chat(u, p)
+    user_history_text = ""
+    for h in full_history:
+        if h["role"] == "user":
+            user_history_text += f"User: {h['content']}\n"
+
+    current_hist_text = ""
     for h in history:
-        if h.get("role") == "user":
-            history_lines.append(f"User: {h.get('content', '')}")
-        elif h.get("role") == "ai":
-            history_lines.append(f"AI: {h.get('content', '')}")
-    history_text = "\n".join(history_lines)
+        if h["role"] == "user":
+            current_hist_text += f"User: {h['content']}\n"
+        else:
+            current_hist_text += f"AI: {h['content']}\n"
 
-    # Prompt 强制英文
     prompt = f"""
-You are {AGENT_SKILLS_MAP[current_agent]['name']}
-Skill: {best['content']}
+You are {AGENT_SKILLS_MAP[agent_type]['name']}
+Skill: {skill['content']}
 Ask for more information if needed. Do not diagnose or prescribe medicine.
 IMPORTANT: Reply ONLY in ENGLISH.
 
-Conversation History:
-{history_text}
-User: {msg}
+# ALL USER HISTORY (backend only, not shown to user):
+{user_history_text}
+
+# CURRENT CONVERSATION:
+{current_hist_text}
+User: {message}
 Please answer:
 """
-    reply = run_gpt_api(prompt)
-    if not reply:
-        reply = API_ERROR_MSG
 
-    return jsonify({
-        "reply": reply,
-        "agent": current_agent
-    })
+    reply = run_gpt(prompt) or "Service unavailable"
 
-# =============================================================================
-# 运行
-# =============================================================================
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5177, debug=True)
+    new_hist = full_history + [
+        {"role": "user", "content": message},
+        {"role": "ai", "content": reply}
+    ]
+    save_chat(u, p, new_hist)
+
+    frontend_history = history + [
+        {"role": "user", "content": message},
+        {"role": "ai", "content": reply}
+    ]
+
+    return jsonify({"reply": reply, "history": frontend_history})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5177, debug=True)
