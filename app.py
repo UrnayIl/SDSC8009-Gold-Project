@@ -5,6 +5,7 @@ import requests
 import time
 import os
 import hashlib
+import re  # 新增行：导入正则，用于过滤Markdown
 
 app = Flask(__name__)
 CORS(app)
@@ -109,6 +110,22 @@ def run_gpt(prompt, retry=2):
     return None
 
 # ==========================
+# ✅ 新增：Markdown净化函数（过滤##、---等符号，让回复更紧凑）
+# ==========================
+def clean_markdown(text):
+    # 1. 移除标题符号（##、###等）
+    text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
+    # 2. 移除分割线（---、***等）
+    text = re.sub(r'^[-*]{3,}\s*$', '', text, flags=re.MULTILINE)
+    # 3. 移除多余空行（合并连续空行为1个）
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    # 4. 移除列表符号（•、-等），替换为空格
+    text = re.sub(r'^\s*[-•]\s*', ' ', text, flags=re.MULTILINE)
+    # 5. 移除加粗符号（**）
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
+    return text.strip()
+
+# ==========================
 # 技能系统（你原版完全不动）
 # ==========================
 SKILLS_FOLDER = "skills"
@@ -159,9 +176,8 @@ AGENT_SKILLS_MAP = {
 }
 
 # ==========================
-# 👇 ======================
-# ✅ 新增：LLM 智能识别最合适的 Agent（无关键词，纯 LLM）
-# 👇 ======================
+# LLM 智能识别Agent（完全不动）
+# ==========================
 def get_best_agent_by_llm(user_question):
     agent_list = ["nutritionist", "trainer", "health_keeper", "therapist", "team"]
 
@@ -238,9 +254,7 @@ def chat():
     if not check_user(u, p):
         return jsonify({"reply": "Please login first"})
 
-    # ==============================================
-    # ✅ 核心：LLM 判断当前问题应该用哪个 Agent
-    # ==============================================
+    # LLM判断最佳Agent（完全不动）
     best_agent = get_best_agent_by_llm(message)
     is_switched = (best_agent != agent_type)
 
@@ -262,11 +276,16 @@ def chat():
         else:
             current_hist_text += f"AI: {h['content']}\n"
 
+    # ✅ 新增：在Prompt中要求回复更紧凑（配合净化函数双重保障）
+    print(skill)
     prompt = f"""
 You are {AGENT_SKILLS_MAP[best_agent]['name']}
 Skill: {skill['content']}
 Ask for more information if needed. Do not diagnose or prescribe medicine.
-IMPORTANT: Reply ONLY in ENGLISH.
+IMPORTANT: 
+1. Reply ONLY in ENGLISH.
+2. Keep your answer CONCISE and COMPACT, avoid unnecessary headings, separators, or bullet points.
+3. Use simple, direct language without markdown formatting.
 
 # ALL USER HISTORY (backend only, not shown to user):
 {user_history_text}
@@ -279,9 +298,12 @@ Please answer:
 
     reply = run_gpt(prompt) or "Service unavailable"
 
-    # 切换提示
-    if is_switched:
-        reply += f"\n\n⚠️ I have automatically switched you to: {AGENT_SKILLS_MAP[best_agent]['name']}"
+    # ✅ 核心修改：对GPT回复进行Markdown净化
+    reply = clean_markdown(reply)
+
+    # 切换提示（完全不动）
+    #if is_switched:
+    #    reply += f"\n\n⚠️ I have automatically switched you to: {AGENT_SKILLS_MAP[best_agent]['name']}"
 
     new_hist = full_history + [
         {"role": "user", "content": message},
