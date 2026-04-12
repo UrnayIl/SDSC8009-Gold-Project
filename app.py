@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 # ==========================
-# 用户系统（修复版）
+# 用户系统（完全不动）
 # ==========================
 USER_FILE = "user_credentials.json"
 CHAT_DIR = "chat_histories"
@@ -25,7 +25,6 @@ def init_auth():
 def encrypt(pwd):
     return hashlib.sha256(pwd.encode()).hexdigest()
 
-# 注册：兼容新旧格式，修复 string indices 错误
 def register_user(username, email, password):
     try:
         with open(USER_FILE, "r", encoding="utf-8") as f:
@@ -33,7 +32,6 @@ def register_user(username, email, password):
     except:
         users = {}
 
-    # 如果是旧版数据，清空重建
     for key in list(users.keys()):
         if isinstance(users[key], str):
             del users[key]
@@ -52,7 +50,6 @@ def register_user(username, email, password):
         json.dump(users, f, indent=2)
     return True
 
-# 登录：兼容用户名/邮箱
 def check_user(input_str, password):
     try:
         with open(USER_FILE, "r", encoding="utf-8") as f:
@@ -87,7 +84,7 @@ def load_chat(username, password):
 init_auth()
 
 # ==========================
-# GPT 调用
+# GPT 调用（完全不动）
 # ==========================
 def run_gpt(prompt, retry=2):
     url = "https://api.chatanywhere.tech/v1/chat/completions"
@@ -112,7 +109,7 @@ def run_gpt(prompt, retry=2):
     return None
 
 # ==========================
-# 技能系统（完全你的逻辑）
+# 技能系统（你原版完全不动）
 # ==========================
 SKILLS_FOLDER = "skills"
 ALL_SKILLS_CACHE = {}
@@ -160,6 +157,37 @@ AGENT_SKILLS_MAP = {
         "skills": list(ALL_SKILLS_CACHE.keys())
     }
 }
+
+# ==========================
+# 👇 ======================
+# ✅ 新增：LLM 智能识别最合适的 Agent（无关键词，纯 LLM）
+# 👇 ======================
+def get_best_agent_by_llm(user_question):
+    agent_list = ["nutritionist", "trainer", "health_keeper", "therapist", "team"]
+
+    prompt = f"""
+You are an intelligent intent classifier.
+Please look at the user's question and choose the BEST health agent to answer:
+
+Agents:
+- nutritionist: nutrition, diet, weight loss, eating, meal plan
+- trainer: fitness, workout, exercise, rehabilitation, sport
+- health_keeper: sleep, wellness, energy, TCM, lifestyle
+- therapist: mental health, stress, emotion, anxiety, mood
+- team: all topics, complex health issues
+
+User question: {user_question}
+
+ONLY RETURN THE AGENT NAME. DO NOT ADD ANY OTHER WORDS.
+"""
+    try:
+        best = run_gpt(prompt).strip().lower()
+        for agent in agent_list:
+            if agent in best:
+                return agent
+    except:
+        pass
+    return "team"
 
 def get_skill_pool(agent_type):
     if agent_type == "team":
@@ -210,7 +238,13 @@ def chat():
     if not check_user(u, p):
         return jsonify({"reply": "Please login first"})
 
-    skill_pool = get_skill_pool(agent_type)
+    # ==============================================
+    # ✅ 核心：LLM 判断当前问题应该用哪个 Agent
+    # ==============================================
+    best_agent = get_best_agent_by_llm(message)
+    is_switched = (best_agent != agent_type)
+
+    skill_pool = get_skill_pool(best_agent)
     skill = select_best_skill(message, skill_pool)
     if not skill:
         return jsonify({"reply": "No skill"})
@@ -229,7 +263,7 @@ def chat():
             current_hist_text += f"AI: {h['content']}\n"
 
     prompt = f"""
-You are {AGENT_SKILLS_MAP[agent_type]['name']}
+You are {AGENT_SKILLS_MAP[best_agent]['name']}
 Skill: {skill['content']}
 Ask for more information if needed. Do not diagnose or prescribe medicine.
 IMPORTANT: Reply ONLY in ENGLISH.
@@ -245,6 +279,10 @@ Please answer:
 
     reply = run_gpt(prompt) or "Service unavailable"
 
+    # 切换提示
+    if is_switched:
+        reply += f"\n\n⚠️ I have automatically switched you to: {AGENT_SKILLS_MAP[best_agent]['name']}"
+
     new_hist = full_history + [
         {"role": "user", "content": message},
         {"role": "ai", "content": reply}
@@ -256,7 +294,12 @@ Please answer:
         {"role": "ai", "content": reply}
     ]
 
-    return jsonify({"reply": reply, "history": frontend_history})
+    return jsonify({
+        "reply": reply,
+        "history": frontend_history,
+        "current_agent": best_agent,
+        "is_switched": is_switched
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5177, debug=True)
