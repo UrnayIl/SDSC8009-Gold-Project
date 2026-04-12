@@ -163,11 +163,11 @@ AGENT_SKILLS_MAP = {
     },
     "health_keeper": {
         "name": "🌿 Wellness Expert",
-        "skills": ["sleep-analyzer", "tcm-constitution-analyzer"]
+        "skills": ["sleep-analyzer", "tcm-constitution-analyzer", "patiently-ai"]
     },
     "therapist": {
         "name": "🧠 Mental Health Counselor",
-        "skills": ["mental-health-analyzer"]
+        "skills": ["mental-health-analyzer", "crisis-detection-intervention-ai", "crisis-response-protocol", "jungian-psychologist", "adhd-daily-planner"]
     },
     "team": {
         "name": "🏥 Team Consultation",
