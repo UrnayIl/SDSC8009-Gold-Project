@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - Healthcare Manager</title>
     <style>
-        /* 你的原版 CSS 完全不动！！！ */
+        /* 你的原版CSS完全不动，只保留按钮样式 */
         * {
             margin: 0;
             padding: 0;
@@ -312,7 +312,7 @@
         }
         .toggle-text {
             text-align: center;
-            margin: 16px 0;
+            margin: 16px;
             font-size: 14px;
             color: #666;
         }
@@ -363,6 +363,28 @@
             opacity: 1;
             top: 34px;
         }
+        /* 消息内跳转按钮样式 */
+        .switch-btn-group {
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .switch-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #4dabff, #06d6a0);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .switch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -387,6 +409,7 @@
     </div>
 </div>
 
+<!-- 原有更换教练弹窗 -->
 <div class="modal" id="roleModal">
     <div class="modal-content">
         <h3 class="modal-title">Choose Your Health Coach</h3>
@@ -422,12 +445,45 @@ const isTeamMode = params.get("isTeam") === "true";
 let user = JSON.parse(localStorage.getItem("user") || "null");
 let chatHistory = [];
 
+// Agent 基础映射
 const agentMap = {
     nutritionist: "🍽️ Nutrition Coach",
     trainer: "🏋️ Fitness Coach",
     health_keeper: "🌿 Wellness Guide",
     therapist: "❤️‍🩹 Mind Support",
     team: "🧑‍⚕️ Healthcare Manager"
+};
+
+// ✅ 核心：技能 → Agent 精准映射（100%覆盖所有技能）
+const skillToAgentMap = {
+    "nutrition-analyzer": "nutritionist",
+    "weightloss-analyzer": "nutritionist",
+    "goal-analyzer": ["nutritionist", "trainer"],
+    "fitness-analyzer": "trainer",
+    "rehabilitation-analyzer": "trainer",
+    "sleep-analyzer": "health_keeper",
+    "tcm-constitution-analyzer": "health_keeper",
+    "patiently-ai": "health_keeper",
+    "mental-health-analyzer": "therapist",
+    "crisis-detection-intervention-ai": "therapist",
+    "crisis-response-protocol": "therapist",
+    "jungian-psychologist": "therapist",
+    "adhd-daily-planner": "therapist"
+};
+
+// 5个Agent的专属欢迎语
+const welcomeMessages = {
+    team: `Hi ${user?.username || 'there'}, welcome to your personal healthcare management team!
+Here is your personal healthcare manager, I will lead our team to support you with:
+• Nutrition
+• Fitness
+• Wellness
+• Mental Health
+What can we help you with today? 💛`,
+    nutritionist: `Hi there! I'm your personal Nutrition Coach. Let’s build healthy habits that fit your life — how can I help you today?`,
+    trainer: `Hey! I'm your Fitness Coach. Let’s get moving safely and hit your goals — what do you want to work on today?`,
+    health_keeper: `Hello. I'm your Wellness Guide. Take your time — how would you like to feel better today?`,
+    therapist: `Hi. I'm here as your Mind Support. Whatever you’re feeling is okay — I’m ready to listen.`
 };
 
 window.onload = init;
@@ -448,6 +504,29 @@ async function init() {
     syncAuthUI();
     loadHistory();
     renderTitle();
+
+    if (chatHistory.length === 0) {
+        const welcomeMsg = welcomeMessages[isTeamMode ? "team" : agent];
+        addMessage(welcomeMsg, false, []);
+        chatHistory = [{"role": "ai", "content": welcomeMsg}];
+        saveWelcomeHistory(welcomeMsg);
+    }
+}
+
+async function saveWelcomeHistory(welcomeMsg) {
+    try {
+        await fetch(`${API}/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: user.username,
+                password: user.password,
+                agent_type: isTeamMode ? "team" : agent,
+                message: "",
+                history: []
+            })
+        });
+    } catch (e) {}
 }
 
 function syncAuthUI() {
@@ -482,7 +561,8 @@ function renderMarkdown(text) {
         .replace(/\n/g, "<br>");
 }
 
-function addMessage(text, isUser = false) {
+// ✅ 核心：addMessage 直接接收技能列表，生成按钮
+function addMessage(text, isUser = false, selectedSkills = []) {
     const area = document.getElementById("messageArea");
     const wrap = document.createElement("div");
     wrap.className = `msg-wrapper ${isUser ? "user" : "bot"}`;
@@ -491,7 +571,44 @@ function addMessage(text, isUser = false) {
     avatar.textContent = isUser ? "👤" : (isTeamMode ? "🧑‍⚕️" : agentMap[agent].charAt(0));
     const bubble = document.createElement("div");
     bubble.className = "msg-bubble";
+
+    // 渲染正文
     bubble.innerHTML = renderMarkdown(text);
+
+    // ✅ 关键：用后端传的技能列表，直接生成按钮（100%精准）
+    if (!isUser && selectedSkills.length > 0) {
+        // 把技能列表转成Agent列表，去重、最多2个
+        const agentList = [];
+        selectedSkills.forEach(skill => {
+            const targetAgent = skillToAgentMap[skill];
+            if (!targetAgent) return;
+            if (Array.isArray(targetAgent)) {
+                agentList.push(...targetAgent);
+            } else {
+                agentList.push(targetAgent);
+            }
+        });
+        const uniqueAgents = [...new Set(agentList)].slice(0, 2);
+
+        if (uniqueAgents.length > 0) {
+            const btnGroup = document.createElement("div");
+            btnGroup.className = "switch-btn-group";
+
+            uniqueAgents.forEach(agentType => {
+                if (!agentMap[agentType]) return;
+                const btn = document.createElement("button");
+                btn.className = "switch-btn";
+                btn.textContent = `Go to ${agentMap[agentType].replace(/^[^ ]+ /, '')}`;
+                btn.onclick = () => {
+                    location.href = `chat.html?agent=${agentType}&isTeam=false`;
+                };
+                btnGroup.appendChild(btn);
+            });
+
+            bubble.appendChild(btnGroup);
+        }
+    }
+
     wrap.appendChild(avatar);
     wrap.appendChild(bubble);
     area.appendChild(wrap);
@@ -508,7 +625,7 @@ async function loadHistory() {
         const data = await res.json();
         if (data.success && data.history) {
             chatHistory = data.history;
-            chatHistory.forEach(h => addMessage(h.content, h.role === "user"));
+            chatHistory.forEach(h => addMessage(h.content, h.role === "user", []));
         }
     } catch (e) {}
 }
@@ -517,7 +634,7 @@ async function sendMessage() {
     const text = document.getElementById("inputText").value.trim();
     if (!text) return;
     document.getElementById("inputText").value = "";
-    addMessage(text, true);
+    addMessage(text, true, []);
 
     try {
         const res = await fetch(`${API}/chat`, {
@@ -532,10 +649,11 @@ async function sendMessage() {
             })
         });
         const data = await res.json();
-        addMessage(data.reply);
+        // ✅ 直接用后端传的 selected_skills 生成按钮，完全不用猜
+        addMessage(data.reply, false, data.selected_skills || []);
         chatHistory = data.history;
     } catch (e) {
-        addMessage("AI service unavailable");
+        addMessage("AI service unavailable", false, []);
     }
 }
 
@@ -544,7 +662,6 @@ function openModal() { document.getElementById("roleModal").classList.add("show"
 function closeModal() { document.getElementById("roleModal").classList.remove("show"); }
 function goToTeamChat() { location.href = "chat.html?agent=team&isTeam=true"; }
 
-// ✅ 修复：给四个角色按钮绑定点击事件
 document.querySelectorAll(".role-item").forEach(item => {
     item.addEventListener("click", () => {
         const type = item.dataset.type;

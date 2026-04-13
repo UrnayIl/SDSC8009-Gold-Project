@@ -5,7 +5,7 @@ import requests
 import time
 import os
 import hashlib
-import re  # 新增行：导入正则，用于过滤Markdown
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -110,23 +110,18 @@ def run_gpt(prompt, retry=2):
     return None
 
 # ==========================
-# ✅ 新增：Markdown净化函数（过滤##、---等符号，让回复更紧凑）
+# Markdown净化函数（不动）
 # ==========================
 def clean_markdown(text):
-    # 1. 移除标题符号（##、###等）
     text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
-    # 2. 移除分割线（---、***等）
     text = re.sub(r'^[-*]{3,}\s*$', '', text, flags=re.MULTILINE)
-    # 3. 移除多余空行（合并连续空行为1个）
     text = re.sub(r'\n{3,}', '\n\n', text)
-    # 4. 移除列表符号（•、-等），替换为空格
     text = re.sub(r'^\s*[-•]\s*', ' ', text, flags=re.MULTILINE)
-    # 5. 移除加粗符号（**）
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     return text.strip()
 
 # ==========================
-# 技能系统（你原版完全不动）
+# 技能系统（不动）
 # ==========================
 SKILLS_FOLDER = "skills"
 ALL_SKILLS_CACHE = {}
@@ -176,7 +171,72 @@ AGENT_SKILLS_MAP = {
 }
 
 # ==========================
-# LLM 智能识别Agent（完全不动）
+# 技能 → 教练名称映射
+# ==========================
+SKILL_TO_COACH = {
+    "nutrition-analyzer": "Nutrition Coach",
+    "weightloss-analyzer": "Nutrition Coach",
+    "goal-analyzer": "Fitness Coach & Nutrition Coach",
+    "fitness-analyzer": "Fitness Coach",
+    "rehabilitation-analyzer": "Fitness Coach",
+    "sleep-analyzer": "Wellness Guide",
+    "tcm-constitution-analyzer": "Wellness Guide",
+    "patiently-ai": "Wellness Guide",
+    "mental-health-analyzer": "Mind Support",
+    "crisis-detection-intervention-ai": "Mind Support",
+    "crisis-response-protocol": "Mind Support",
+    "jungian-psychologist": "Mind Support",
+    "adhd-daily-planner": "Mind Support"
+}
+
+# ==========================
+# ✅ 全新重写：LLM 智能选技能，无关键词，最多2个
+# ==========================
+def identify_complex_skills(query, skill_pool):
+    if not skill_pool:
+        return "", []
+
+    available_skills = list(skill_pool.keys())
+    skills_str = "\n".join([f"- {s}" for s in available_skills])
+
+    prompt = f"""
+You are a professional health skill selector.
+Available skills:
+{skills_str}
+
+User question: {query}
+
+Rules:
+1. Select 1 OR 2 skills that BEST match the user's needs.
+2. If the need involves multiple health areas (like nutrition + fitness, sleep + mental), select 2 skills.
+3. Only output skill names separated by comma. No extra words.
+
+Output example 1: nutrition-analyzer
+Output example 2: nutrition-analyzer,fitness-analyzer
+
+Now select:
+"""
+
+    llm_out = run_gpt(prompt)
+    if not llm_out:
+        first = next(iter(skill_pool.values()))
+        return first["content"], []
+
+    selected = [s.strip() for s in llm_out.split(",") if s.strip() in skill_pool]
+    selected = list(dict.fromkeys(selected))[:2]
+
+    if not selected:
+        first = next(iter(skill_pool.values()))
+        return first["content"], []
+
+    content = ""
+    for name in selected:
+        content += f"\n--- Skill: {name} ---\n{skill_pool[name]['content']}"
+
+    return content.strip(), selected
+
+# ==========================
+# LLM 智能识别Agent（不动）
 # ==========================
 def get_best_agent_by_llm(user_question):
     agent_list = ["nutritionist", "trainer", "health_keeper", "therapist", "team"]
@@ -212,13 +272,39 @@ def get_skill_pool(agent_type):
         target = AGENT_SKILLS_MAP[agent_type]["skills"]
         return {k: v for k, v in ALL_SKILLS_CACHE.items() if k in target}
 
-def select_best_skill(query, pool):
+# ==========================
+# 技能选择（不动）
+# ==========================
+def select_best_skill(query, pool, agent_type):
+    if agent_type == "team":
+        skill_content, selected_skills = identify_complex_skills(query, pool)
+        return {"content": skill_content}, selected_skills
+    
     q = query.lower()
     if "weight" in q and "weightloss-analyzer" in pool:
-        return pool["weightloss-analyzer"]
-    if "goal" in q or "plan" in q and "goal-analyzer" in pool:
-        return pool["goal-analyzer"]
-    return next(iter(pool.values())) if pool else None
+        return pool["weightloss-analyzer"], [pool["weightloss-analyzer"]["name"]]
+    if ("goal" in q or "plan" in q) and "goal-analyzer" in pool:
+        return pool["goal-analyzer"], [pool["goal-analyzer"]["name"]]
+    first = next(iter(pool.values())) if pool else None
+    return first, [first["name"]] if first else []
+
+# ==========================
+# 生成切换提示（不动）
+# ==========================
+def generate_switch_tip(skill_names):
+    unique_coaches = []
+    for sk in skill_names:
+        coach = SKILL_TO_COACH.get(sk, "")
+        if coach and coach not in unique_coaches:
+            unique_coaches.append(coach)
+    
+    if len(unique_coaches) == 0:
+        return ""
+    elif len(unique_coaches) == 1:
+        return f"\n\nWe have {unique_coaches[0]} that can solve your problem. You can switch to the corresponding Coach if you need."
+    else:
+        coach_str = " + ".join(unique_coaches[:2])
+        return f"\n\nWe have {coach_str} that can solve your problem. You can switch to the corresponding Coach if you need."
 
 # ==========================
 # 接口
@@ -254,12 +340,11 @@ def chat():
     if not check_user(u, p):
         return jsonify({"reply": "Please login first"})
 
-    # LLM判断最佳Agent（完全不动）
     best_agent = get_best_agent_by_llm(message)
     is_switched = (best_agent != agent_type)
 
     skill_pool = get_skill_pool(best_agent)
-    skill = select_best_skill(message, skill_pool)
+    skill, selected_skills = select_best_skill(message, skill_pool, best_agent)
     if not skill:
         return jsonify({"reply": "No skill"})
 
@@ -276,8 +361,6 @@ def chat():
         else:
             current_hist_text += f"AI: {h['content']}\n"
 
-    # ✅ 新增：在Prompt中要求回复更紧凑（配合净化函数双重保障）
-    print(skill)
     prompt = f"""
 You are {AGENT_SKILLS_MAP[best_agent]['name']}
 Skill: {skill['content']}
@@ -297,13 +380,10 @@ Please answer:
 """
 
     reply = run_gpt(prompt) or "Service unavailable"
-
-    # ✅ 核心修改：对GPT回复进行Markdown净化
     reply = clean_markdown(reply)
 
-    # 切换提示（完全不动）
-    #if is_switched:
-    #    reply += f"\n\n⚠️ I have automatically switched you to: {AGENT_SKILLS_MAP[best_agent]['name']}"
+    switch_tip = generate_switch_tip(selected_skills)
+    reply += switch_tip
 
     new_hist = full_history + [
         {"role": "user", "content": message},
@@ -320,7 +400,8 @@ Please answer:
         "reply": reply,
         "history": frontend_history,
         "current_agent": best_agent,
-        "is_switched": is_switched
+        "is_switched": is_switched,
+        "selected_skills": selected_skills
     })
 
 if __name__ == "__main__":
