@@ -561,7 +561,7 @@ function renderMarkdown(text) {
         .replace(/\n/g, "<br>");
 }
 
-// ✅ 核心：addMessage 直接接收技能列表，生成按钮
+// ✅ 核心修复：addMessage 增加「当前Agent过滤」逻辑
 function addMessage(text, isUser = false, selectedSkills = []) {
     const area = document.getElementById("messageArea");
     const wrap = document.createElement("div");
@@ -575,9 +575,9 @@ function addMessage(text, isUser = false, selectedSkills = []) {
     // 渲染正文
     bubble.innerHTML = renderMarkdown(text);
 
-    // ✅ 关键：用后端传的技能列表，直接生成按钮（100%精准）
+    // ✅ 关键：只在「推荐Agent≠当前Agent」时显示按钮
     if (!isUser && selectedSkills.length > 0) {
-        // 把技能列表转成Agent列表，去重、最多2个
+        // 1. 把技能列表转成Agent列表
         const agentList = [];
         selectedSkills.forEach(skill => {
             const targetAgent = skillToAgentMap[skill];
@@ -588,8 +588,16 @@ function addMessage(text, isUser = false, selectedSkills = []) {
                 agentList.push(targetAgent);
             }
         });
-        const uniqueAgents = [...new Set(agentList)].slice(0, 2);
 
+        // 2. 去重 + 过滤掉「当前页面的Agent」+ 最多保留2个
+        let uniqueAgents = [...new Set(agentList)];
+        // 核心过滤：如果当前不是Team模式，移除和当前Agent相同的项
+        if (!isTeamMode) {
+            uniqueAgents = uniqueAgents.filter(a => a !== agent);
+        }
+        uniqueAgents = uniqueAgents.slice(0, 2);
+
+        // 3. 只有过滤后还有Agent，才生成按钮
         if (uniqueAgents.length > 0) {
             const btnGroup = document.createElement("div");
             btnGroup.className = "switch-btn-group";
@@ -649,7 +657,6 @@ async function sendMessage() {
             })
         });
         const data = await res.json();
-        // ✅ 直接用后端传的 selected_skills 生成按钮，完全不用猜
         addMessage(data.reply, false, data.selected_skills || []);
         chatHistory = data.history;
     } catch (e) {

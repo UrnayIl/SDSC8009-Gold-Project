@@ -360,15 +360,15 @@ def chat():
             current_hist_text += f"User: {h['content']}\n"
         else:
             current_hist_text += f"AI: {h['content']}\n"
-
     prompt = f"""
 You are {AGENT_SKILLS_MAP[best_agent]['name']}
 Skill: {skill['content']}
 Ask for more information if needed. Do not diagnose or prescribe medicine.
 IMPORTANT: 
 1. Reply ONLY in ENGLISH.
-2. Keep your answer CONCISE and COMPACT, avoid unnecessary headings, separators, or bullet points.
-3. Use simple, direct language without markdown formatting.
+2. Avoid unnecessary headings, separators, or bullet points.
+3. Without markdown formatting.
+4. Ask if you have questions
 
 # ALL USER HISTORY (backend only, not shown to user):
 {user_history_text}
@@ -378,11 +378,13 @@ IMPORTANT:
 User: {message}
 Please answer:
 """
-
+    print(prompt)
     reply = run_gpt(prompt) or "Service unavailable"
     reply = clean_markdown(reply)
 
-    switch_tip = generate_switch_tip(selected_skills)
+    switch_tip = ""
+    if best_agent != agent_type:
+        switch_tip = generate_switch_tip(selected_skills)
     reply += switch_tip
 
     new_hist = full_history + [
