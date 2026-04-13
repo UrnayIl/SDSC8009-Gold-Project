@@ -417,9 +417,8 @@
 <script>
 const API = "http://localhost:5177/api";
 const params = new URLSearchParams(location.search);
-const agent = params.get("agent") || "nutritionist";
+let agent = params.get("agent") || "nutritionist";
 const isTeamMode = params.get("isTeam") === "true";
-
 let user = JSON.parse(localStorage.getItem("user") || "null");
 let chatHistory = [];
 
@@ -504,7 +503,7 @@ async function loadHistory() {
         const res = await fetch(`${API}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: user.username, password: user.password })
+            body: JSON.stringify({ input: user.username, password: user.password })
         });
         const data = await res.json();
         if (data.success && data.history) {
@@ -544,6 +543,15 @@ function goBack() { location.href = "index.html"; }
 function openModal() { document.getElementById("roleModal").classList.add("show"); }
 function closeModal() { document.getElementById("roleModal").classList.remove("show"); }
 function goToTeamChat() { location.href = "chat.html?agent=team&isTeam=true"; }
+
+// ✅ 修复：给四个角色按钮绑定点击事件
+document.querySelectorAll(".role-item").forEach(item => {
+    item.addEventListener("click", () => {
+        const type = item.dataset.type;
+        closeModal();
+        location.href = `chat.html?agent=${type}&isTeam=false`;
+    });
+});
 
 document.getElementById("sendBtn").onclick = sendMessage;
 document.getElementById("inputText").addEventListener("keypress", e => {
